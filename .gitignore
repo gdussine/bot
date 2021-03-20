@@ -1,0 +1,13 @@
+build
+gradle
+.idea
+.settings
+gradlew
+.project
+bin
+.classpath
+.gradle
+gradlew.bat
+src/main/resources/bot.json
+
+

@@ -1,0 +1,19 @@
+plugins {
+    id 'java'	
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+repositories {
+    jcenter()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+	implementation group: 'net.dv8tion', name: 'JDA', version: '4.1.1_125'
+	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.1'
+	implementation group: 'org.reflections', name: 'reflections', version: '0.9.10'
+}
