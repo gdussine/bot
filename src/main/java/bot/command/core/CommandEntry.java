@@ -5,64 +5,52 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
-import bot.command.annotations.CommandModule;
 import bot.command.annotations.CommandDescription;
+import bot.command.annotations.CommandModule;
 import bot.command.annotations.CommandOption;
-import bot.core.Bot;
+import bot.command.model.CommandOptionInfo;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 public class CommandEntry {
 
     private CommandModule module;
     private CommandDescription description;
-    private List<CommandOption> options;
-
     private Class<?> type;
     private Method method;
-    private List<Parameter> parameters;
+    private List<CommandOptionInfo> optionInfo;
 
     public CommandEntry(CommandModule module, CommandDescription command, Class<?> type, Method method) {
         this.module = module;
         this.description = command;
         this.type = type;
         this.method = method;
-        this.options = new ArrayList<>();
-        this.parameters = new ArrayList<>();
+        this.optionInfo = new ArrayList<>();
     }
 
     public void addOption(CommandOption option, Parameter parameter) {
-        this.options.add(option);
-        this.parameters.add(parameter);
+        this.optionInfo.add(new CommandOptionInfo(parameter.getName(),option.description(), option.required(), option.autocompleter(), parameter.getType()));   
     }
 
     public SubcommandData toSubcommandData() {
         SubcommandData subcommand = new SubcommandData(method.getName(), description.value());
-        for (int i = 0; i < options.size(); i++) {
-            subcommand.addOptions(new OptionData(CommandOptionType.byClass(parameters.get(i).getType()).getOption(),
-                    options.get(i).name(), options.get(i).description(),
-                    options.get(i).required(), !options.get(i).autocomplete().equals(CommandAutoCompleters.NONE)));
-        }
+        subcommand.addOptions(optionInfo.stream().map(option -> option.toOptionData()).toList());
         return subcommand;
     }
 
-    public CommandAction toCommandAction(Bot bot, SlashCommandInteractionEvent event) {
+    public CommandAction getCommandAction() {
         try {
-            CommandAction action = CommandAction.class.cast(type.getConstructor().newInstance());
-            action.hydrate(bot, event);
-            return action;
+            return CommandAction.class.cast(type.getConstructor().newInstance());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public Object[] toCommandParameters(SlashCommandInteractionEvent event) {
-        Object[] result = new Object[parameters.size()];
+    public Object[] getCommandParameters(SlashCommandInteractionEvent event) {
+        Object[] result = new Object[optionInfo.size()];
         for (int i = 0; i < result.length; i++) {
-            result[i] = event.getOption(options.get(i).name(), null,
-                    CommandOptionType.byClass(parameters.get(i).getType()).getMapper());
+            result[i] = this.optionInfo.get(i).getCommandParameter(event);
         }
         return result;
     }
@@ -87,14 +75,6 @@ public class CommandEntry {
         this.description = command;
     }
 
-    public List<CommandOption> getOptions() {
-        return options;
-    }
-
-    public void setOptions(List<CommandOption> options) {
-        this.options = options;
-    }
-
     public Class<?> getType() {
         return type;
     }
@@ -111,12 +91,14 @@ public class CommandEntry {
         this.method = method;
     }
 
-    public List<Parameter> getParameters() {
-        return parameters;
+    public List<CommandOptionInfo> getOptionInfo() {
+        return optionInfo;
     }
 
-    public void setParameters(List<Parameter> parameter) {
-        this.parameters = parameter;
+    public void setOptionInfo(List<CommandOptionInfo> optionInfo) {
+        this.optionInfo = optionInfo;
     }
+
+    
 
 }

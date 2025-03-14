@@ -2,7 +2,7 @@ package bot.context;
 
 import net.dv8tion.jda.api.entities.Guild;
 
-public interface GuildContextSupplier {
+public interface GuildContextProvider {
 
     public GuildContext getContext(long guildId);
 

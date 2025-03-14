@@ -11,11 +11,11 @@ import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 
 public class GuildContext {
 
-    Guild guild;
-    Map<String, TextChannel> textChannels = new HashMap<>();
-    Map<String, VoiceChannel> voiceChannels = new HashMap<>();
-    Map<String, Role> roles = new HashMap<>();
-    Map<String, RichCustomEmoji> emojis = new HashMap<>();
+    private Guild guild;
+    private Map<String, Long> textChannelIds = new HashMap<>();
+    private Map<String, Long> voiceChannelIds = new HashMap<>();
+    private Map<String, Long> roleIds = new HashMap<>();
+    private Map<String, Long> emojiIds = new HashMap<>();
 
     public Guild getGuild() {
         return guild;
@@ -25,52 +25,52 @@ public class GuildContext {
         this.guild = guild;
     }
 
-    public Map<String, TextChannel> getTextChannels() {
-        return textChannels;
+    public Map<String, Long> getTextChannelIds() {
+        return textChannelIds;
     }
 
-    public TextChannel getTextChannel(Enum<?> key){
-        return textChannels.get(key.name());
+    public TextChannel getTextChannel(String key){
+        return guild.getTextChannelById(textChannelIds.getOrDefault(key, 0L));
     }
 
-    public void setTextChannels(Map<String, TextChannel> textChannels) {
-        this.textChannels = textChannels;
+    public void setTextChannelIds(Map<String, Long> textChannelIds) {
+        this.textChannelIds = textChannelIds;
     }
 
-    public Map<String, VoiceChannel> getVoiceChannels() {
-        return voiceChannels;
+    public Map<String, Long> getVoiceChannelIds() {
+        return voiceChannelIds;
     }
 
-    public VoiceChannel getVoiceChannel(Enum<?> key){
-        return voiceChannels.get(key.name());
+    public VoiceChannel getVoiceChannel(String key){
+        return guild.getVoiceChannelById(voiceChannelIds.getOrDefault(key, 0L));
     }
 
-    public void setVoiceChannels(Map<String, VoiceChannel> voiceChannels) {
-        this.voiceChannels = voiceChannels;
+    public void setVoiceChannelIds(Map<String, Long> voiceChannelIds) {
+        this.voiceChannelIds = voiceChannelIds;
     }
 
-    public Map<String, Role> getRoles() {
-        return roles;
+    public Map<String, Long> getRoleIds() {
+        return roleIds;
     }
 
-    public Role getRole(Enum<?> key){
-        return roles.get(key.name());
+    public Role getRole(String key){
+        return guild.getRoleById(roleIds.getOrDefault(key, 0L));
     }
 
-    public void setRoles(Map<String, Role> roles) {
-        this.roles = roles;
+    public void setRoleIds(Map<String, Long> roleIds) {
+        this.roleIds = roleIds;
     }
 
-    public Map<String, RichCustomEmoji> getEmojis() {
-        return emojis;
+    public Map<String, Long> getEmojiIds() {
+        return emojiIds;
     }
 
-    public RichCustomEmoji getEmoji(Enum<?> key){
-        return  emojis.get(key.name());
+    public RichCustomEmoji getEmoji(String key){
+        return guild.getEmojiById(emojiIds.getOrDefault(key, 0L));
     }
 
-    public void setEmojis(Map<String, RichCustomEmoji> emojis) {
-        this.emojis = emojis;
+    public void setEmojiIds(Map<String, Long> emojiIds) {
+        this.emojiIds = emojiIds;
     }
 
 }

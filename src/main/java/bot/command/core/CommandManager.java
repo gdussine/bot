@@ -1,6 +1,5 @@
 package bot.command.core;
 
-import bot.command.annotations.CommandOption;
 import bot.core.Bot;
 import bot.core.BotService;
 import net.dv8tion.jda.api.entities.Guild;
@@ -9,36 +8,39 @@ import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 
 public class CommandManager extends BotService {
 
-    private final static String COMMAND_PACKAGE = "bot.command.impl";
-    private CommandMap map;
+    private CommandMap commandMap;
 
-    public CommandManager(Bot bot) {
-        super(bot);
-        this.map = CommandMap.create(COMMAND_PACKAGE);
+    public CommandManager() {
+        commandMap = CommandMap.create();
+    }
+
+    @Override
+    public void connect(Bot bot) {
+        super.connect(bot, new CommandListener());
     }
 
     public void init(Guild guild) {
-        guild.updateCommands().addCommands(map.getCommands()).queue();
+        guild.updateCommands().addCommands(commandMap.getCommands()).queue();
     }
 
-    public void autocomplete(CommandAutoCompleteInteraction interaction){
-        CommandEntry entry = map.get(interaction.getName(), interaction.getSubcommandName());
-        CommandOption option = entry.getOptions().stream().filter(x->x.name().equals(interaction.getFocusedOption().getName())).findAny().orElse(null);
-        option.autocomplete().getCompleter().accept(interaction);
-        
+    public void autocomplete(CommandAutoCompleteInteraction interaction) {
+        CommandEntry entry = commandMap.get(interaction.getName(), interaction.getSubcommandName());
+        entry.getOptionInfo().stream().filter(x -> x.getName().equals(interaction.getFocusedOption().getName()))
+                .forEach(option -> option.getAutocompleter().accept(interaction));
     }
 
     public void execute(SlashCommandInteractionEvent event) {
-        CommandEntry entry = map.get(event.getName(), event.getSubcommandName());
-        CommandAction action = entry.toCommandAction(bot, event);
-        Object[] parameters = entry.toCommandParameters(event);
+        CommandEntry entry = commandMap.get(event.getName(), event.getSubcommandName());
+        CommandAction action = entry.getCommandAction();
+        Object[] parameters = entry.getCommandParameters(event);
         try {
+            action.hydrate(this.getBot(), event);
             action.check();
             entry.getMethod().invoke(action, parameters);
         } catch (CommandException e) {
-            action.replyException(e);
-        } catch(Exception e){
-            action.replyException(e);
+            action.replyException(e).queue();
+        } catch (Exception e) {
+            action.replyException(e).queue();
         }
     }
 

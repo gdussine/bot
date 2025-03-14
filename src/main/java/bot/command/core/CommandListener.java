@@ -1,7 +1,5 @@
 package bot.command.core;
 
-import javax.annotation.Nonnull;
-
 import bot.core.BotListener;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
@@ -10,18 +8,23 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 public class CommandListener extends BotListener{
 
     @Override
-    public void onGuildReady(@Nonnull GuildReadyEvent event) {
-        //bot.getCommandManager().init(event.getGuild());
+    public CommandManager getService() {
+        return (CommandManager) super.getService();
     }
 
     @Override
-    public void onSlashCommandInteraction(@Nonnull SlashCommandInteractionEvent event) {
-        //bot.getCommandManager().execute(event);
+    public void onGuildReady(GuildReadyEvent event) {
+        getService().init(event.getGuild());
+    }
+
+    @Override
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        getService().execute(event);
     }
 
     @Override
     public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
-        //bot.getCommandManager().autocomplete(event);
+        getService().autocomplete(event);
     }
 
 }
