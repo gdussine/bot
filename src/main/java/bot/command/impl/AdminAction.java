@@ -4,9 +4,7 @@ import bot.command.annotations.CommandDescription;
 import bot.command.annotations.CommandModule;
 import bot.command.annotations.CommandOption;
 import bot.command.core.CommandAction;
-import bot.command.core.NumberAutoCompleter;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 @CommandModule(name = "admin", permission = { Permission.ADMINISTRATOR })
 public class AdminAction extends CommandAction {
@@ -20,12 +18,11 @@ public class AdminAction extends CommandAction {
         });
     }
 
-    @CommandDescription("Clean amount of message from channel")
-    public void clean(@CommandOption(description = "Amount of message", autocompleter = NumberAutoCompleter.class) Integer amount) {
-        TextChannel channel = interaction.getChannel().asTextChannel();
-        channel.getHistory().retrievePast(amount).submit()
-            .thenAccept(msgs -> channel.purgeMessages(msgs))
-            .thenAccept(v -> interaction.reply("Done !").setEphemeral(true).submit());
+    @CommandDescription("Shutdown the bot")
+    public void shutdown() {
+        interaction.reply("Bye! :wave:").queue(x -> {
+            bot.logout();
+        });
     }
 
 }

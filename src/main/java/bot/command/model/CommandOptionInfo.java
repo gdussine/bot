@@ -1,7 +1,9 @@
 package bot.command.model;
 
+import java.lang.reflect.Parameter;
+
+import bot.command.annotations.CommandOption;
 import bot.command.core.CommandAutoCompleter;
-import bot.command.core.CommandOptionTypes;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -21,6 +23,10 @@ public class CommandOptionInfo {
         this.required = required;
         this.setType(type);
         this.setAutocompleter(autocompleterClass);
+    }
+
+    public CommandOptionInfo(Parameter parameter, CommandOption option){
+        this(parameter.getName(), option.description(), option.required(), option.autocompleter(), parameter.getType());
     }
 
     public String getName() {

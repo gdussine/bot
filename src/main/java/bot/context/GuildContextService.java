@@ -8,10 +8,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import bot.core.BotService;
+import bot.service.core.BotService;
+import bot.service.core.GenericBotService;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class GuildContextService extends BotService implements GuildContextProvider {
+@BotService
+public class GuildContextService extends GenericBotService implements GuildContextProvider {
 
     private String filename = "config.json";
     private TypeReference<Map<String, GuildContext>> type = new TypeReference<>() {
@@ -20,25 +22,32 @@ public class GuildContextService extends BotService implements GuildContextProvi
     private ObjectMapper mapper;
 
     public Map<String, GuildContext> getContexts() {
-        SimpleModule mapperModule = new SimpleModule().addDeserializer(Guild.class,
-                new GuildDeserializer(() -> this.getBot()));
-        this.mapper = new ObjectMapper().registerModule(mapperModule);
         if (contexts == null) {
+            SimpleModule mapperModule = new SimpleModule().addDeserializer(Guild.class,
+                    new GuildDeserializer(() -> this.getBot()));
+            this.mapper = new ObjectMapper().registerModule(mapperModule);
             try (InputStream in = GuildContextService.class.getClassLoader().getResourceAsStream(filename)) {
                 contexts = this.mapper.readValue(in, type);
+                this.log.info("GuildContext Initialization : {} guild loaded", contexts.size());
             } catch (IOException e) {
-                e.printStackTrace();
+                this.log.error("GuildContext Initialization error : {}", e.getMessage());
             }
         }
         return contexts;
     }
 
     public GuildContext getContext(long guildId) {
-        return getContexts().get(Long.toString(guildId));
+        GuildContext context = getContexts().get(Long.toString(guildId));
+        if (context == null)
+            this.log.warn("Guild:{} has no context configured", guildId);
+        return context;
     }
 
     public GuildContext getContext(Guild guild) {
-        return getContext(guild.getIdLong());
+        GuildContext context = getContexts().get(guild.getId());
+        if (context == null)
+            this.log.warn("Guild '{}' has no context configured", guild.getName());
+        return context;
     }
 
 }

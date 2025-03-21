@@ -3,8 +3,10 @@ package bot.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import bot.command.model.CommandDictionnary;
 import bot.context.GuildContext;
 import bot.context.GuildContextProvider;
+import bot.service.core.BotServices;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -16,12 +18,15 @@ public class Bot implements GuildContextProvider {
     protected Logger log;
     protected GuildContextProvider contextSupplier;
     private BotServices services;
+    private CommandDictionnary commands;
 
-    public Bot( JDABuilder jdaBuilder, BotServices services) {
+    public Bot( JDABuilder jdaBuilder, BotServices services, CommandDictionnary commands) {
         this.log = LoggerFactory.getLogger(getClass());
         this.jdaBuilder = jdaBuilder;
         this.services = services;
+        this.commands = commands;
     }
+
 
     public void login(String token) {
         jda = jdaBuilder.setToken(token).build();
@@ -65,5 +70,9 @@ public class Bot implements GuildContextProvider {
     @Override
     public GuildContext getContext(Guild guild) {
         return contextSupplier.getContext(guild);
+    }
+
+    public CommandDictionnary getCommands() {
+        return commands;
     }
 }

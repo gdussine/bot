@@ -1,4 +1,4 @@
-package bot.command.core;
+package bot.command.model;
 
 import java.util.function.Function;
 

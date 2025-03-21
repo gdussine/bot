@@ -3,6 +3,8 @@ package bot.command.model;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import bot.command.annotations.CommandDescription;
+import bot.command.annotations.CommandModule;
 import bot.command.core.CommandAction;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -13,9 +15,22 @@ public class CommandInfo {
     private String moduleName;
     private Permission[] permissions;
     private String commandDescription;
-    private Class<?> type;
     private Method method;
     private List<CommandOptionInfo> options;
+
+
+    public CommandInfo(String moduleName, Permission[] permissions, String commandDescription, Method method,
+            List<CommandOptionInfo> options) {
+        this.moduleName = moduleName;
+        this.permissions = permissions;
+        this.commandDescription = commandDescription;
+        this.method = method;
+        this.options = options;
+    }
+
+    public CommandInfo(CommandModule module, CommandDescription description, Method method, List<CommandOptionInfo> options){
+        this(module.name(), module.permission(), description.value(), method, options);
+    }
 
     public String getId(){
         return "%s#%s".formatted(moduleName, method.getName());
@@ -53,14 +68,6 @@ public class CommandInfo {
         this.options = options;
     }
 
-    public Class<?> getType() {
-        return type;
-    }
-
-    public void setType(Class<?> type) {
-        this.type = type;
-    }
-
     public Method getMethod() {
         return method;
     }
@@ -85,7 +92,7 @@ public class CommandInfo {
 
     public CommandAction getCommandAction() {
         try {
-            return CommandAction.class.cast(type.getConstructor().newInstance());
+            return CommandAction.class.cast(method.getDeclaringClass().getConstructor().newInstance());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
