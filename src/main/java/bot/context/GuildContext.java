@@ -1,76 +1,59 @@
 package bot.context;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
+import bot.core.Bot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class GuildContext {
 
-    private Guild guild;
-    private Map<String, Long> textChannelIds = new HashMap<>();
-    private Map<String, Long> voiceChannelIds = new HashMap<>();
-    private Map<String, Long> roleIds = new HashMap<>();
-    private Map<String, Long> emojiIds = new HashMap<>();
+    protected Bot bot;
+
+    protected GuildConfiguration configuration;
+
+    public GuildContext(Bot bot, GuildConfiguration configuration) {
+        this.bot = bot;
+        this.configuration = configuration;
+    }
+
+    protected <T> T getByType(GuildContextType<T> type, String key) {
+        Long id = type.map(this.configuration).get(key);
+        if (id == null || id == 0)
+            return null;
+        return type.convert(getGuild(), id);
+    }
+
+    public Bot geBot() {
+        return bot;
+    }
+
+    public GuildConfiguration getConfiguration() {
+        return configuration;
+    }
 
     public Guild getGuild() {
-        return guild;
+        return bot.getJDA().getGuildById(configuration.getId());
     }
 
-    public void setGuild(Guild guild) {
-        this.guild = guild;
+    public Role getRole(String key) {
+        return getByType(GuildContextType.ROLE, key);
     }
 
-    public Map<String, Long> getTextChannelIds() {
-        return textChannelIds;
+    public TextChannel getTextChannel(String key) {
+        return getByType(GuildContextType.TEXT_CHANNEL, key);
     }
 
-    public TextChannel getTextChannel(String key){
-        return guild.getTextChannelById(textChannelIds.getOrDefault(key, 0L));
+    public VoiceChannel getVoiceChannel(String key) {
+        return getByType(GuildContextType.VOICE_CHANNEL, key);
     }
 
-    public void setTextChannelIds(Map<String, Long> textChannelIds) {
-        this.textChannelIds = textChannelIds;
-    }
-
-    public Map<String, Long> getVoiceChannelIds() {
-        return voiceChannelIds;
-    }
-
-    public VoiceChannel getVoiceChannel(String key){
-        return guild.getVoiceChannelById(voiceChannelIds.getOrDefault(key, 0L));
-    }
-
-    public void setVoiceChannelIds(Map<String, Long> voiceChannelIds) {
-        this.voiceChannelIds = voiceChannelIds;
-    }
-
-    public Map<String, Long> getRoleIds() {
-        return roleIds;
-    }
-
-    public Role getRole(String key){
-        return guild.getRoleById(roleIds.getOrDefault(key, 0L));
-    }
-
-    public void setRoleIds(Map<String, Long> roleIds) {
-        this.roleIds = roleIds;
-    }
-
-    public Map<String, Long> getEmojiIds() {
-        return emojiIds;
-    }
-
-    public RichCustomEmoji getEmoji(String key){
-        return guild.getEmojiById(emojiIds.getOrDefault(key, 0L));
-    }
-
-    public void setEmojiIds(Map<String, Long> emojiIds) {
-        this.emojiIds = emojiIds;
+    public Emoji getEmoji(String key) {
+        return getByType(GuildContextType.EMOJI, key);
     }
 
 }

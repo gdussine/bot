@@ -48,6 +48,12 @@ dependencies{
     // RIOT
     implementation group: 'fr.guillaume', name:'irelia', version: '1.0.2'
 
+    // HIBERNATE
+    implementation 'org.hibernate.orm:hibernate-core:7.0.0.Beta5'
+    implementation 'jakarta.transaction:jakarta.transaction-api'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.2'
+
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }

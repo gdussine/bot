@@ -5,13 +5,13 @@ import org.slf4j.LoggerFactory;
 
 import bot.core.Bot;
 
-public abstract class GenericBotService {
+public abstract class AbstractBotService {
 
     private Bot bot;
     protected Logger log;
     private BotListener listener;
 
-    public GenericBotService() {
+    public AbstractBotService() {
         this.log = LoggerFactory.getLogger(getClass());
     }
 
@@ -42,6 +42,11 @@ public abstract class GenericBotService {
         this.bot = bot;
         if (listener != null)
             bot.getJdaBuilder().addEventListeners(listener);
+    }
+
+    public void disconnect(){
+        this.bot = null;
+        this.listener = null;
     }
 
 }

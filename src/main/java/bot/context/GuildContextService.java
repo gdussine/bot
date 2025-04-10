@@ -1,53 +1,72 @@
 package bot.context;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
+import bot.persistence.EntityRepository;
+import bot.service.core.AbstractBotService;
 import bot.service.core.BotService;
-import bot.service.core.GenericBotService;
 import net.dv8tion.jda.api.entities.Guild;
 
 @BotService
-public class GuildContextService extends GenericBotService implements GuildContextProvider {
+public class GuildContextService extends AbstractBotService implements GuildContextProvider {
 
-    private String filename = "config.json";
-    private TypeReference<Map<String, GuildContext>> type = new TypeReference<>() {
-    };
-    Map<String, GuildContext> contexts;
-    private ObjectMapper mapper;
+    Map<Long, GuildContext> contexts;
 
-    public Map<String, GuildContext> getContexts() {
+    private EntityRepository<GuildConfiguration> repository;
+
+    public GuildContextService() {
+        this.repository = new EntityRepository<>(GuildConfiguration.class, this);
+    }
+
+    public Map<Long, GuildContext> getContexts() {
         if (contexts == null) {
-            SimpleModule mapperModule = new SimpleModule().addDeserializer(Guild.class,
-                    new GuildDeserializer(() -> this.getBot()));
-            this.mapper = new ObjectMapper().registerModule(mapperModule);
-            try (InputStream in = GuildContextService.class.getClassLoader().getResourceAsStream(filename)) {
-                contexts = this.mapper.readValue(in, type);
-                this.log.info("GuildContext Initialization : {} guild loaded", contexts.size());
-            } catch (IOException e) {
-                this.log.error("GuildContext Initialization error : {}", e.getMessage());
-            }
+            this.init();
         }
         return contexts;
     }
 
+    public void init() {
+        contexts = new HashMap<>();
+        for (GuildConfiguration configuration : repository.all()) {
+            this.load(configuration);
+        }
+        this.log.info("{} configurations have been initialized", contexts.size());
+    }
+
+    public GuildContext load(GuildConfiguration configuration){
+        GuildContext context = new GuildContext(getBot(), configuration);
+        contexts.put(configuration.getId(), context);
+        this.log.info("Configuration from Guild:{} has been loaded.", configuration.getId());
+        return context;
+    }
+
+    public GuildContext create(long guildId){
+        GuildConfiguration configuration = new GuildConfiguration(guildId);
+        repository.persist(configuration);
+        this.log.info("Configuration from Guild:{} has been created. ({})", guildId, configuration.getCreated());
+        return this.load(configuration);
+    }
+
+    public GuildContext update(GuildContext context){
+        context.getConfiguration().setUpdated(LocalDateTime.now());
+        repository.merge(context.getConfiguration());
+        this.log.info("Configuration from Guild:{} has been updated. ({}).", context.getGuild().getIdLong(), context.getConfiguration().getUpdated());
+        return context;
+    }
+
     public GuildContext getContext(long guildId) {
-        GuildContext context = getContexts().get(Long.toString(guildId));
-        if (context == null)
-            this.log.warn("Guild:{} has no context configured", guildId);
+        GuildContext context = getContexts().get(guildId);
+        if (context == null){
+            context = this.create(guildId);
+        }
+        
         return context;
     }
 
     public GuildContext getContext(Guild guild) {
-        GuildContext context = getContexts().get(guild.getId());
-        if (context == null)
-            this.log.warn("Guild '{}' has no context configured", guild.getName());
-        return context;
+        return getContext(guild.getIdLong());
     }
 
 }

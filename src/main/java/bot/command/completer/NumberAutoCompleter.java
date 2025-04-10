@@ -1,8 +1,9 @@
-package bot.command.core;
+package bot.command.completer;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import bot.command.core.CommandAutoCompleter;
 import bot.core.Bot;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;

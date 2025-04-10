@@ -2,13 +2,13 @@ package bot.command.core;
 
 import bot.command.model.CommandInfo;
 import bot.service.core.BotService;
-import bot.service.core.GenericBotService;
+import bot.service.core.AbstractBotService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 
 @BotService(listener = CommandListener.class)
-public class CommandManager extends GenericBotService {
+public class CommandManager extends AbstractBotService {
 
     public void init(Guild guild) {
         guild.updateCommands().addCommands(this.getBot().getCommands().getDataSet()).queue();

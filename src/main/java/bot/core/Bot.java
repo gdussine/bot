@@ -6,30 +6,38 @@ import org.slf4j.LoggerFactory;
 import bot.command.model.CommandDictionnary;
 import bot.context.GuildContext;
 import bot.context.GuildContextProvider;
-import bot.service.core.BotServices;
+import bot.persistence.DatabaseService;
+import bot.service.core.AbstractBotService;
+import bot.service.core.BotServiceFactory;
+import jakarta.persistence.EntityManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class Bot implements GuildContextProvider {
+public class Bot implements BotProxy {
+
+    private static Bot instance;
 
     protected JDA jda;
     protected JDABuilder jdaBuilder;
     protected Logger log;
     protected GuildContextProvider contextSupplier;
-    private BotServices services;
+    private BotServiceFactory botServiceFactory;
     private CommandDictionnary commands;
+    private BotConfiguration configuration;;
 
-    public Bot( JDABuilder jdaBuilder, BotServices services, CommandDictionnary commands) {
+    public Bot( JDABuilder jdaBuilder, BotConfiguration configuration, BotServiceFactory botServiceFactory, CommandDictionnary commands) {
         this.log = LoggerFactory.getLogger(getClass());
         this.jdaBuilder = jdaBuilder;
-        this.services = services;
+        this.botServiceFactory = botServiceFactory;
         this.commands = commands;
+        this.configuration = configuration;
+        instance = this;
     }
 
 
-    public void login(String token) {
-        jda = jdaBuilder.setToken(token).build();
+    public void login() {
+        jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
         try {
             jda.awaitReady();
         } catch (InterruptedException e) {
@@ -44,6 +52,7 @@ public class Bot implements GuildContextProvider {
         } catch (InterruptedException e) {
             log.error(e.getMessage());
         }
+        botServiceFactory.close();
     }
 
     public JDA getJDA() {
@@ -54,8 +63,12 @@ public class Bot implements GuildContextProvider {
         return jdaBuilder;
     }
 
-    public BotServices services(){
-        return services;
+    public BotConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public BotServiceFactory getBotServiceFactory() {
+        return botServiceFactory;
     }
 
     public void setContextSupplier(GuildContextProvider contextSupplier) {
@@ -74,5 +87,22 @@ public class Bot implements GuildContextProvider {
 
     public CommandDictionnary getCommands() {
         return commands;
+    }
+
+
+    public static Bot getInstance() {
+        return instance;
+    }
+
+
+    @Override
+    public <T extends AbstractBotService> T get(Class<T> serviceClass) {
+        return botServiceFactory.get(serviceClass);
+    }
+
+
+    @Override
+    public EntityManager getEntityManager() {
+        return this.get(DatabaseService.class).getEntityManager();
     }
 }
