@@ -1,8 +1,5 @@
 package bot.context;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import bot.core.Bot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;

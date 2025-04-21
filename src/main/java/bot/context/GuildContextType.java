@@ -31,7 +31,6 @@ public class GuildContextType<T> {
         this.type = type;
         this.converter = converter;
         this.mapper = mapper;
-
     }
 
     public T convert(Guild guild, Long id) {

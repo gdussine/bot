@@ -15,6 +15,6 @@ public class Launcher {
         GuildContext ctxt = bot.getContext(667885057133772810L);
         //ctxt.getConfiguration().getRoles().put(GuildContextIndex.Role.MEMBER.name(), 87535834896547079L);
         bot.get(GuildContextService.class).update(ctxt);
-        System.out.println(ctxt.getRole(GuildContextIndex.Role.MEMBER.name()));
+        System.out.println(ctxt.getRole(GuildContextIndex.ROLE_MEMBER.name()));
     }
 }
