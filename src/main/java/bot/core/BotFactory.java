@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import bot.command.annotations.CommandModule;
 import bot.command.core.CommandAction;
 import bot.command.model.CommandDictionnary;
-import bot.context.GuildContextService;
 import bot.service.core.AbstractBotService;
 import bot.service.core.BotService;
 import bot.service.core.BotServiceFactory;
@@ -27,9 +26,6 @@ public class BotFactory {
     protected String configurationPath;
     private ObjectMapper mapper;
 
-    public BotFactory(String configurationPath) {
-        this(configurationPath, "bot.*");
-    }
 
     public BotFactory(String configurationPath, String... packages) {
         this.botGraph = new ClassGraph().acceptPackages(packages);
@@ -38,34 +34,33 @@ public class BotFactory {
         this.mapper = new ObjectMapper();
     }
 
-    protected Bot newBot() {
-        CommandDictionnary commands = new CommandDictionnary();
-        BotServiceFactory services = new BotServiceFactory();
-        JDABuilder jdaBuilder = JDABuilder.createDefault("");
-        BotConfiguration configuration = new BotConfiguration();
-        return new Bot(jdaBuilder, configuration, services, commands);
+    public BotFactory(String configurationPath) {
+        this(configurationPath, "bot.*");
     }
 
-    public Bot initBot() {
-        Bot bot = this.newBot();
+    public Bot createBot() {
+        Bot bot = new Bot();
+        this.initBot(bot);
         this.initConfiguration(bot);
         this.initCommands(bot);
         this.initService(bot);
-        bot.setContextSupplier(bot.getBotServiceFactory().get(GuildContextService.class));
         return bot;
     }
 
-    protected BotConfiguration initConfiguration(Bot bot) {
+    protected void initBot(Bot bot){
+        bot.setJdaBuilder(JDABuilder.createDefault(""));
+    }
+
+    protected void initConfiguration(Bot bot) {
         try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(configurationPath)) {
-            bot.getConfiguration().setConfiguration(mapper.readValue(in, BotConfiguration.class));
-            return bot.getConfiguration();
+            bot.setConfiguration(mapper.readValue(in, BotConfiguration.class));
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
         }
     }
 
-    protected CommandDictionnary initCommands(Bot bot) {
+    protected void initCommands(Bot bot) {
+        CommandDictionnary commands = new CommandDictionnary();
         try (ScanResult result = botGraph.enableAnnotationInfo().scan()) {
             for (ClassInfo classInfo : result.getSubclasses(CommandAction.class)) {
                 if (classInfo.isAbstract())
@@ -73,14 +68,15 @@ public class BotFactory {
                 if (!classInfo.hasAnnotation(CommandModule.class))
                     continue;
                 Class<CommandAction> clazz = classInfo.loadClass(CommandAction.class);
-                bot.getCommands().put(clazz);
+                commands.put(clazz);
                 this.log.info("CommandModule {} loaded.", clazz.getSimpleName());
             }
         }
-        return bot.getCommands();
+        bot.setCommands(commands);  
     }
 
-    protected BotServiceFactory initService(Bot bot) {
+    protected void initService(Bot bot) {
+        BotServiceFactory botServiceFactory = new BotServiceFactory();
         try (ScanResult result = botGraph.enableAnnotationInfo().scan()) {
             for (ClassInfo classInfo : result.getSubclasses(AbstractBotService.class)) {
                 if (classInfo.isAbstract())
@@ -88,10 +84,10 @@ public class BotFactory {
                 if (!classInfo.hasAnnotation(BotService.class))
                     continue;
                 Class<? extends AbstractBotService> clazz = classInfo.loadClass(AbstractBotService.class);
-                bot.getBotServiceFactory().create(clazz, bot);
+                botServiceFactory.create(clazz, bot);
             }
         }
-        return bot.getBotServiceFactory();
+        bot.setBotServiceFactory(botServiceFactory);
     }
 
 }

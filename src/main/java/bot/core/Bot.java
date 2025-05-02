@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import bot.command.model.CommandDictionnary;
 import bot.context.GuildContext;
 import bot.context.GuildContextProvider;
+import bot.context.GuildContextService;
 import bot.persistence.DatabaseService;
 import bot.service.core.AbstractBotService;
 import bot.service.core.BotServiceFactory;
@@ -14,27 +15,19 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class Bot implements BotProxy {
-
-    private static Bot instance;
+public class Bot implements GuildContextProvider{
 
     protected JDA jda;
     protected JDABuilder jdaBuilder;
     protected Logger log;
-    protected GuildContextProvider contextSupplier;
     private BotServiceFactory botServiceFactory;
     private CommandDictionnary commands;
     private BotConfiguration configuration;;
 
-    public Bot( JDABuilder jdaBuilder, BotConfiguration configuration, BotServiceFactory botServiceFactory, CommandDictionnary commands) {
-        this.log = LoggerFactory.getLogger(getClass());
-        this.jdaBuilder = jdaBuilder;
-        this.botServiceFactory = botServiceFactory;
-        this.commands = commands;
-        this.configuration = configuration;
-        instance = this;
-    }
 
+    public Bot() {
+        this.log = LoggerFactory.getLogger(getClass());
+    }
 
     public void login() {
         jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
@@ -71,38 +64,59 @@ public class Bot implements BotProxy {
         return botServiceFactory;
     }
 
-    public void setContextSupplier(GuildContextProvider contextSupplier) {
-        this.contextSupplier = contextSupplier;
-    }
-
     @Override
     public GuildContext getContext(long guildId) {
-        return contextSupplier.getContext(guildId);
+        return this.get(GuildContextService.class).getContext(guildId);
     }
 
     @Override
     public GuildContext getContext(Guild guild) {
-        return contextSupplier.getContext(guild);
+        return this.get(GuildContextService.class).getContext(guild);
     }
 
     public CommandDictionnary getCommands() {
         return commands;
     }
 
-
-    public static Bot getInstance() {
-        return instance;
-    }
-
-
-    @Override
     public <T extends AbstractBotService> T get(Class<T> serviceClass) {
         return botServiceFactory.get(serviceClass);
     }
 
-
-    @Override
     public EntityManager getEntityManager() {
         return this.get(DatabaseService.class).getEntityManager();
     }
+
+    public JDA getJda() {
+        return jda;
+    }
+
+    public void setJda(JDA jda) {
+        this.jda = jda;
+    }
+
+    public void setJdaBuilder(JDABuilder jdaBuilder) {
+        this.jdaBuilder = jdaBuilder;
+    }
+
+    public Logger getLog() {
+        return log;
+    }
+
+    public void setLog(Logger log) {
+        this.log = log;
+    }
+
+    public void setBotServiceFactory(BotServiceFactory botServiceFactory) {
+        this.botServiceFactory = botServiceFactory;
+    }
+
+    public void setCommands(CommandDictionnary commands) {
+        this.commands = commands;
+    }
+
+    public void setConfiguration(BotConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+    
 }
