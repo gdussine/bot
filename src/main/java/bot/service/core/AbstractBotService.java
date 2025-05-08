@@ -44,6 +44,10 @@ public abstract class AbstractBotService {
             bot.getJdaBuilder().addEventListeners(listener);
     }
 
+    public boolean isConnected(){
+        return this.bot != null;
+    }
+
     public void disconnect(){
         this.bot = null;
         this.listener = null;

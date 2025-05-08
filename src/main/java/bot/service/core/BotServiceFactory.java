@@ -25,6 +25,10 @@ public class BotServiceFactory {
         return serviceClass.cast(services.get(serviceClass));
     }
 
+    public Map<Class<? extends AbstractBotService>, AbstractBotService> getServices() {
+        return services;
+    }
+
     public void close(){
         for(AbstractBotService service : services.values()){
             service.disconnect();

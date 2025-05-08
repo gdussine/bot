@@ -2,6 +2,7 @@ package bot.command.core;
 
 import bot.context.GuildContext;
 import bot.core.Bot;
+import bot.view.ExceptionView;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 
@@ -23,7 +24,13 @@ public abstract class CommandAction {
     }
 
     public ReplyCallbackAction replyException(Exception exception){
-        return interaction.reply(exception.getMessage()).setEphemeral(true);
+        ExceptionView view = new ExceptionView(exception);
+        return interaction.replyEmbeds(view.render()).setEphemeral(true);
+    }
+
+    public ReplyCallbackAction replyException(CommandException exception){
+        ExceptionView view = new ExceptionView(exception).toCommandView();
+        return interaction.replyEmbeds(view.render()).setEphemeral(true);
     }
 
 
@@ -33,5 +40,11 @@ public abstract class CommandAction {
 
     public void check() throws CommandException {
 
+    }
+
+    protected void checkOwner() throws CommandException{
+        if(bot.getConfiguration().getOwnerId().equals(interaction.getUser().getIdLong()))
+            return;
+        throw CommandException.notOwner(this);
     }
 }

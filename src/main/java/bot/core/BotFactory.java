@@ -27,15 +27,11 @@ public class BotFactory {
     private ObjectMapper mapper;
 
 
-    public BotFactory(String configurationPath, String... packages) {
-        this.botGraph = new ClassGraph().acceptPackages(packages);
+    public BotFactory(String configurationPath) {
+        this.botGraph = new ClassGraph().enableAnnotationInfo();
         this.log = LoggerFactory.getLogger(getClass());
         this.configurationPath = configurationPath;
         this.mapper = new ObjectMapper();
-    }
-
-    public BotFactory(String configurationPath) {
-        this(configurationPath, "bot.*");
     }
 
     public Bot createBot() {
@@ -61,7 +57,7 @@ public class BotFactory {
 
     protected void initCommands(Bot bot) {
         CommandDictionnary commands = new CommandDictionnary();
-        try (ScanResult result = botGraph.enableAnnotationInfo().scan()) {
+        try (ScanResult result = botGraph.scan()) {
             for (ClassInfo classInfo : result.getSubclasses(CommandAction.class)) {
                 if (classInfo.isAbstract())
                     continue;
@@ -77,7 +73,7 @@ public class BotFactory {
 
     protected void initService(Bot bot) {
         BotServiceFactory botServiceFactory = new BotServiceFactory();
-        try (ScanResult result = botGraph.enableAnnotationInfo().scan()) {
+        try (ScanResult result = botGraph.scan()) {
             for (ClassInfo classInfo : result.getSubclasses(AbstractBotService.class)) {
                 if (classInfo.isAbstract())
                     continue;
