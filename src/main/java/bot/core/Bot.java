@@ -3,7 +3,6 @@ package bot.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bot.command.model.CommandDictionnary;
 import bot.context.GuildContext;
 import bot.context.GuildContextProvider;
 import bot.context.GuildContextService;
@@ -20,8 +19,8 @@ public class Bot implements GuildContextProvider{
     protected JDA jda;
     protected JDABuilder jdaBuilder;
     protected Logger log;
+    protected String name;
     private BotServiceFactory botServiceFactory;
-    private CommandDictionnary commands;
     private BotConfiguration configuration;;
 
 
@@ -74,10 +73,6 @@ public class Bot implements GuildContextProvider{
         return this.get(GuildContextService.class).getContext(guild);
     }
 
-    public CommandDictionnary getCommands() {
-        return commands;
-    }
-
     public <T extends AbstractBotService> T get(Class<T> serviceClass) {
         return botServiceFactory.get(serviceClass);
     }
@@ -110,12 +105,16 @@ public class Bot implements GuildContextProvider{
         this.botServiceFactory = botServiceFactory;
     }
 
-    public void setCommands(CommandDictionnary commands) {
-        this.commands = commands;
-    }
-
     public void setConfiguration(BotConfiguration configuration) {
         this.configuration = configuration;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     

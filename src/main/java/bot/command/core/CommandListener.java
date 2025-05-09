@@ -8,8 +8,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 public class CommandListener extends BotListener{
 
     @Override
-    public CommandManager getService() {
-        return (CommandManager) super.getService();
+    public CommandService getService() {
+        return (CommandService) super.getService();
     }
 
     @Override

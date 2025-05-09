@@ -10,8 +10,9 @@ public abstract class AbstractBotService {
     private Bot bot;
     protected Logger log;
     private BotListener listener;
+    private BotServiceFactory botServiceFactory;
 
-    public AbstractBotService() {
+    public AbstractBotService(Bot bot) {
         this.log = LoggerFactory.getLogger(getClass());
     }
 
@@ -44,11 +45,19 @@ public abstract class AbstractBotService {
             bot.getJdaBuilder().addEventListeners(listener);
     }
 
-    public boolean isConnected(){
+    public void setBotServiceFactory(BotServiceFactory botServiceFactory) {
+        this.botServiceFactory = botServiceFactory;
+    }
+
+    public BotServiceFactory getBotServiceFactory() {
+        return botServiceFactory;
+    }
+
+    public boolean isConnected() {
         return this.bot != null;
     }
 
-    public void disconnect(){
+    public void disconnect() {
         this.bot = null;
         this.listener = null;
     }

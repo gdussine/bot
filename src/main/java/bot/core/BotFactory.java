@@ -1,5 +1,7 @@
 package bot.core;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -8,82 +10,64 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import bot.command.annotations.CommandModule;
-import bot.command.core.CommandAction;
-import bot.command.model.CommandDictionnary;
-import bot.service.core.AbstractBotService;
-import bot.service.core.BotService;
+import bot.platform.PlatformService;
 import bot.service.core.BotServiceFactory;
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
-import io.github.classgraph.ScanResult;
 import net.dv8tion.jda.api.JDABuilder;
 
 public class BotFactory {
 
     protected Logger log;
-    protected ClassGraph botGraph;
-    protected String configurationPath;
+    protected String authPath;
     private ObjectMapper mapper;
+    private String name;
 
+    protected BotServiceFactory botServiceFactory;
+    protected BotConfiguration botConfiguration;
+    protected Bot bot;
 
-    public BotFactory(String configurationPath) {
-        this.botGraph = new ClassGraph().enableAnnotationInfo();
+    public BotFactory(String name) {
+        this.bot = new Bot();
+        this.botServiceFactory = new BotServiceFactory(bot);
+        this.name = name;
         this.log = LoggerFactory.getLogger(getClass());
-        this.configurationPath = configurationPath;
         this.mapper = new ObjectMapper();
     }
 
     public Bot createBot() {
-        Bot bot = new Bot();
-        this.initBot(bot);
-        this.initConfiguration(bot);
-        this.initCommands(bot);
-        this.initService(bot);
+        this.initBot();
+        this.initServices();
+        this.initConfiguration();
+        this.provideConfiguration(bot);
+        this.provideServices(bot);
         return bot;
     }
 
-    protected void initBot(Bot bot){
+    protected void initBot(){
         bot.setJdaBuilder(JDABuilder.createDefault(""));
+        bot.setName(name);
     }
 
-    protected void initConfiguration(Bot bot) {
-        try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(configurationPath)) {
-            bot.setConfiguration(mapper.readValue(in, BotConfiguration.class));
+    protected void initConfiguration() {
+        File authFile = botServiceFactory.get(PlatformService.class).loadAuthFile();
+        try (InputStream in = new FileInputStream(authFile)) {
+            this.botConfiguration = mapper.readValue(in, BotConfiguration.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    protected void initCommands(Bot bot) {
-        CommandDictionnary commands = new CommandDictionnary();
-        try (ScanResult result = botGraph.scan()) {
-            for (ClassInfo classInfo : result.getSubclasses(CommandAction.class)) {
-                if (classInfo.isAbstract())
-                    continue;
-                if (!classInfo.hasAnnotation(CommandModule.class))
-                    continue;
-                Class<CommandAction> clazz = classInfo.loadClass(CommandAction.class);
-                commands.put(clazz);
-                this.log.info("CommandModule {} loaded.", clazz.getSimpleName());
-            }
-        }
-        bot.setCommands(commands);  
+
+    protected void initServices() {
+        botServiceFactory.createAll();
     }
 
-    protected void initService(Bot bot) {
-        BotServiceFactory botServiceFactory = new BotServiceFactory();
-        try (ScanResult result = botGraph.scan()) {
-            for (ClassInfo classInfo : result.getSubclasses(AbstractBotService.class)) {
-                if (classInfo.isAbstract())
-                    continue;
-                if (!classInfo.hasAnnotation(BotService.class))
-                    continue;
-                Class<? extends AbstractBotService> clazz = classInfo.loadClass(AbstractBotService.class);
-                botServiceFactory.create(clazz, bot);
-            }
-        }
+    protected void provideServices(Bot bot){
+        botServiceFactory.connectAll(bot);
         bot.setBotServiceFactory(botServiceFactory);
+    }
+
+    protected void provideConfiguration(Bot bot){
+        bot.setConfiguration(botConfiguration);
     }
 
 }

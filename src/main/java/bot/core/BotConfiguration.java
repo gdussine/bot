@@ -57,13 +57,4 @@ public class BotConfiguration {
         this.databaseUrl = databaseUrl;
     }
 
-    public void setConfiguration(BotConfiguration botConfiguration){
-        this.discordToken = botConfiguration.getDiscordToken();
-        this.ownerId = botConfiguration.getOwnerId();
-        this.databaseUser = botConfiguration.getDatabaseUser();
-        this.databasePassword = botConfiguration.getDatabasePassword();
-        this.databaseDriver = botConfiguration.getDatabaseDriver();
-        this.databaseUrl = botConfiguration.getDatabaseUrl();
-    }
-
 }
