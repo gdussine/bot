@@ -1,5 +1,6 @@
 package bot.service.core;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,56 +11,63 @@ import io.github.classgraph.ScanResult;
 
 public class BotServiceFactory {
 
-    private Map<Class<? extends AbstractBotService>, AbstractBotService> services = new HashMap<>();
+	private Map<Class<? extends BotService>, BotService> services = new HashMap<>();
 
-    private Bot bot;
+	private Bot bot;
 
-    public BotServiceFactory(Bot bot){
-        this.bot = bot;
-    }
+	public BotServiceFactory(Bot bot) {
+		this.bot = bot;
+	}
 
-    public void createAll(){
-        try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
-            for (ClassInfo classInfo : result.getSubclasses(AbstractBotService.class)) {
-                if (classInfo.isAbstract())
-                    continue;
-                if (!classInfo.hasAnnotation(BotService.class))
-                    continue;
-                Class<? extends AbstractBotService> clazz = classInfo.loadClass(AbstractBotService.class);
-                this.create(clazz);
-            }
-        }
-    }
+	public void createAll() {
+		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
+			for (ClassInfo classInfo : result.getSubclasses(BotService.class)) {
+				if (classInfo.isAbstract())
+					continue;
+				if (!classInfo.hasAnnotation(BotServiceInfo.class))
+					continue;
+				Class<? extends BotService> clazz = classInfo.loadClass(BotService.class);
+				this.create(clazz);
+			}
+		}
+	}
+	public <T extends BotService> void create(Class<T> clazz) {
+		try {
+			BotServiceInfo info = clazz.getAnnotation(BotServiceInfo.class);
+			BotService service = clazz.getConstructor().newInstance();
+			service.setBot(bot);
+			BotListener listener = info.listener().getConstructor().newInstance();
+			if (listener != null) {
+				listener.setService(service);
+				service.setListener(listener);
+			}
+			services.put(service.getClass(), service);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    public void connectAll(){
-        for(AbstractBotService service : services.values()){
-            service.connect(bot);
-        }
-    }
+	public <T extends BotService> T get(Class<T> serviceClass) {
+		return serviceClass.cast(services.get(serviceClass));
+	}
 
-    public <T extends AbstractBotService> void create(Class<T> clazz) {
-        try {
-            BotService info = clazz.getAnnotation(BotService.class);
-            AbstractBotService service = clazz.getConstructor().newInstance();
-            services.put(service.getClass(), service);
-            service.setListener(info.listener());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	public Collection<BotService> getAll() {
+		return services.values();
+	}
+	
+	public void callbackBeforeDiscordLogin() {
+		getAll().forEach(service -> service.beforeDiscordLogin());
+	}
+	
+	public void callbackAfterDiscordLogin() {
+		getAll().forEach(service -> service.afterDiscordLogin());
+	}
+	
 
-    public <T extends AbstractBotService> T get(Class<T> serviceClass) {
-        return serviceClass.cast(services.get(serviceClass));
-    }
-
-    public Map<Class<? extends AbstractBotService>, AbstractBotService> getServices() {
-        return services;
-    }
-
-    public void close(){
-        for(AbstractBotService service : services.values()){
-            service.disconnect();
-        }
-    }
+	public void close() {
+		for (BotService service : services.values()) {
+			service.disconnect();
+		}
+	}
 
 }

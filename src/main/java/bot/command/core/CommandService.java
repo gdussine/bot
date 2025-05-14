@@ -4,8 +4,8 @@ import bot.command.annotations.CommandModule;
 import bot.command.model.CommandDictionnary;
 import bot.command.model.CommandInfo;
 import bot.core.Bot;
-import bot.service.core.AbstractBotService;
 import bot.service.core.BotService;
+import bot.service.core.BotServiceInfo;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -13,8 +13,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 
-@BotService(listener = CommandListener.class)
-public class CommandService extends AbstractBotService {
+@BotServiceInfo(listener = CommandListener.class)
+public class CommandService extends BotService {
 
     private CommandDictionnary commands;
 
@@ -31,11 +31,6 @@ public class CommandService extends AbstractBotService {
                 this.log.info("CommandModule {} loaded.", clazz.getSimpleName());
             }
         }
-    }
-
-    @Override
-    public void connect(Bot bot) {
-
     }
 
     public void init(Guild guild) {
@@ -58,8 +53,10 @@ public class CommandService extends AbstractBotService {
             info.getMethod().invoke(action, parameters);
         } catch (CommandException e) {
             action.replyException(e).queue();
+            this.log.warn(e.getMessage());
         } catch (Exception e) {
             action.replyException(e).queue();
+            this.log.error(e.getMessage(), e);
         }
     }
 

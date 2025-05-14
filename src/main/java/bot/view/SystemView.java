@@ -2,7 +2,7 @@ package bot.view;
 
 import java.util.Collection;
 
-import bot.service.core.AbstractBotService;
+import bot.service.core.BotService;
 
 public class SystemView extends BotView{
 
@@ -33,7 +33,7 @@ public class SystemView extends BotView{
         return this.setSystemTitle(SHUTDOWN_TITLE);
     }
 
-    public SystemView toServicesView(Collection<AbstractBotService> services) {
+    public SystemView toServicesView(Collection<BotService> services) {
         StringBuilder sb = new StringBuilder();
         services.forEach(service -> sb.append(
                 SERVICE_LINE.formatted(service.getClass().getSimpleName(), service.isConnected() ? "ON" : "OFF")));

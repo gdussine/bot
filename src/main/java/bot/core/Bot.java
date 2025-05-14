@@ -7,7 +7,7 @@ import bot.context.GuildContext;
 import bot.context.GuildContextProvider;
 import bot.context.GuildContextService;
 import bot.persistence.DatabaseService;
-import bot.service.core.AbstractBotService;
+import bot.service.core.BotService;
 import bot.service.core.BotServiceFactory;
 import jakarta.persistence.EntityManager;
 import net.dv8tion.jda.api.JDA;
@@ -29,12 +29,14 @@ public class Bot implements GuildContextProvider{
     }
 
     public void login() {
+    	botServiceFactory.callbackBeforeDiscordLogin();
         jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
         try {
             jda.awaitReady();
         } catch (InterruptedException e) {
             log.error(e.getMessage());
         }
+        botServiceFactory.callbackAfterDiscordLogin();
     }
 
     public void logout() {
@@ -45,10 +47,6 @@ public class Bot implements GuildContextProvider{
             log.error(e.getMessage());
         }
         botServiceFactory.close();
-    }
-
-    public JDA getJDA() {
-        return jda;
     }
 
     public JDABuilder getJdaBuilder() {
@@ -73,7 +71,7 @@ public class Bot implements GuildContextProvider{
         return this.get(GuildContextService.class).getContext(guild);
     }
 
-    public <T extends AbstractBotService> T get(Class<T> serviceClass) {
+    public <T extends BotService> T get(Class<T> serviceClass) {
         return botServiceFactory.get(serviceClass);
     }
 

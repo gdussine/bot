@@ -4,13 +4,13 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class BotListener extends ListenerAdapter {
 
-    AbstractBotService service;
+    BotService service;
 
-    public AbstractBotService getService() {
+    public BotService getService() {
         return service;
     }
 
-    public void setService(AbstractBotService service) {
+    public void setService(BotService service) {
         this.service = service;
     }
     

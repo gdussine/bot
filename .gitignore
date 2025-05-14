@@ -2,6 +2,9 @@
 .gradle
 gradle/
 bin/
+.classpath
+.project
+.settings/
 .vscode/
 gradlew
 gradlew.bat

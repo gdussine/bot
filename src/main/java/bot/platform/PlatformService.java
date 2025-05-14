@@ -1,48 +1,55 @@
 package bot.platform;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bot.core.BotConfiguration;
-import bot.service.core.AbstractBotService;
 import bot.service.core.BotService;
+import bot.service.core.BotServiceInfo;
 import okio.Path;
 
-@BotService
-public class PlatformService extends AbstractBotService {
+@BotServiceInfo
+public class PlatformService extends BotService {
 
-    public PlatformService() {
+    private ObjectMapper mapper;
+
+	public PlatformService() {
+        this.mapper = new ObjectMapper();
     }
 
     public File getMainDirectory() {
-        return Path.get(System.getProperty("user.home")).resolve("."+this.getBot().getName()).toFile();
+        File directory = Path.get(System.getProperty("user.home")).resolve("."+this.getBot().getName()).toFile();
+        directory.mkdir();
+        return directory;
     }
 
     public File getConfigDirectory() {
-        return Path.get(getMainDirectory()).resolve("config").toFile();
+    	File directory = Path.get(getMainDirectory()).resolve("config").toFile();
+        directory.mkdir();
+        return directory;
     }
 
     public File getOutDirectory() {
-        return Path.get(getMainDirectory()).resolve("out").toFile();
+    	File directory = Path.get(getMainDirectory()).resolve("out").toFile();
+        directory.mkdir();
+        return directory;
     }
 
     public File createAuthFile() {
         try (Scanner scanner = new Scanner(System.in)) {
             BotConfiguration configuration = new BotConfiguration();
-            System.out.println("DiscordToken: ");
-            configuration.setDiscordToken(scanner.nextLine());
-            System.out.println("OwnerId: ");
-            configuration.setOwnerId(scanner.nextLong());
-            System.out.println("DatabaseUser: ");
-            configuration.setDatabaseUser(scanner.nextLine());
-            System.out.println("DatabasePassword");
-            configuration.setDatabasePassword(scanner.nextLine());
+            configuration.setDiscordToken("TOKEN");
+            configuration.setOwnerId(0L);
+            configuration.setDatabaseUser("test");
+            configuration.setDatabasePassword("test");
             configuration.setDatabaseDriver("org.mariadb.jdbc.Driver");
             configuration.setDatabaseUrl("jdbc:mariadb://localhost/test");
-            ObjectMapper mapper = new ObjectMapper();
+
             try {
                 File authFile = getAuthFile();
                 authFile.createNewFile();
@@ -56,7 +63,8 @@ public class PlatformService extends AbstractBotService {
     }
 
     public File getAuthFile() {
-        return Path.get(getConfigDirectory()).resolve("auth.json").toFile();
+        File file = Path.get(getConfigDirectory()).resolve("auth.json").toFile();
+        return file;
     }
 
     public File loadAuthFile(){
@@ -64,6 +72,16 @@ public class PlatformService extends AbstractBotService {
         if(authFile.exists())
             return authFile;
         return createAuthFile();
+    }
+    
+    public BotConfiguration getBotConfiguration() {
+        File authFile = loadAuthFile();
+        try (InputStream in = new FileInputStream(authFile)) {
+            return new ObjectMapper().readValue(in, BotConfiguration.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

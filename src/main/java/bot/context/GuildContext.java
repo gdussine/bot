@@ -1,5 +1,8 @@
 package bot.context;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import bot.core.Bot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -10,47 +13,48 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 public class GuildContext {
 
     protected Bot bot;
+    private Map<String, String> configuration = new HashMap<>();
+    private Long guildId;
 
-    protected GuildConfiguration configuration;
-
-    public GuildContext(Bot bot, GuildConfiguration configuration) {
+    public GuildContext(Bot bot, Long guildId) {
         this.bot = bot;
-        this.configuration = configuration;
-    }
-
-    protected <T> T getByType(GuildContextType<T> type, String key) {
-        Long id = type.map(this.configuration).get(key);
-        if (id == null || id == 0)
-            return null;
-        return type.convert(getGuild(), id);
+        this.guildId = guildId;
     }
 
     public Bot geBot() {
         return bot;
     }
-
-    public GuildConfiguration getConfiguration() {
-        return configuration;
-    }
-
+    
     public Guild getGuild() {
-        return bot.getJDA().getGuildById(configuration.getId());
-    }
+		return bot.getJda().getGuildById(guildId);
+	}
+
+    public Map<String, String> getConfiguration() {
+		return configuration;
+	}
 
     public Role getRole(String key) {
-        return getByType(GuildContextType.ROLE, key);
+    	return getGuild().getRoleById(configuration.get(key));
     }
 
     public TextChannel getTextChannel(String key) {
-        return getByType(GuildContextType.TEXT_CHANNEL, key);
+    	return getGuild().getTextChannelById(configuration.get(key));
     }
 
     public VoiceChannel getVoiceChannel(String key) {
-        return getByType(GuildContextType.VOICE_CHANNEL, key);
+    	return getGuild().getVoiceChannelById(configuration.get(key));
     }
 
     public Emoji getEmoji(String key) {
-        return getByType(GuildContextType.EMOJI, key);
+    	return getGuild().getEmojiById(configuration.get(key));
+    }
+    
+    public String getString(String key) {
+    	return configuration.get(key);
+    }
+    
+    public void put(GuildContextEntry entry) {
+    	configuration.put(entry.getContextKey(), entry.getContextValue());
     }
 
 }
