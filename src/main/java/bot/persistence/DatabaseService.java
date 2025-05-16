@@ -24,7 +24,7 @@ public class DatabaseService extends BotService {
 		this.configuration = new PersistenceConfiguration("bot.persistence")
 				.provider("org.hibernate.jpa.HibernatePersistenceProvider")
 				.property("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect")
-				.property(PersistenceConfiguration.SCHEMAGEN_DATABASE_ACTION, "drop-and-create");
+				.property(PersistenceConfiguration.SCHEMAGEN_DATABASE_ACTION, "update");
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
 			for (ClassInfo classInfo : result.getClassesWithAnnotation(Entity.class)) {
 				configuration.managedClass(classInfo.loadClass());

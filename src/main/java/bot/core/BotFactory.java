@@ -7,6 +7,7 @@ import bot.platform.PlatformService;
 import bot.service.core.BotListenerFactory;
 import bot.service.core.BotServiceFactory;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class BotFactory {
 
@@ -17,7 +18,7 @@ public class BotFactory {
     protected BotServiceFactory botServiceFactory;
     protected BotConfiguration botConfiguration;
     protected Bot bot;
-	private BotListenerFactory botListenerFactory;
+    private BotListenerFactory botListenerFactory;
 
     public BotFactory(String name) {
         this.bot = new Bot();
@@ -28,7 +29,8 @@ public class BotFactory {
     }
 
     public Bot createBot() {
-        bot.setJdaBuilder(JDABuilder.createDefault(""));
+        JDABuilder jdaBuilder = JDABuilder.createDefault("").enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS);
+        bot.setJdaBuilder(jdaBuilder);
         bot.setBotServiceFactory(botServiceFactory);
         bot.setName(name);
         botServiceFactory.createAll();

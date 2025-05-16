@@ -11,7 +11,7 @@ public class ExceptionView extends BotView {
 
     public ExceptionView(Exception exception) {
         this.exception = exception;
-        this.template.setTitle(":warning: - %s".formatted(exception.getClass().getSimpleName()));
+        this.template.setTitle(":warning:  %s".formatted(exception.getClass().getSimpleName()));
         this.template.setDescription(exception.getMessage());
         StringBuilder sb = new StringBuilder();
         Arrays.stream(exception.getStackTrace()).forEach(x->sb.append(x.toString()).append("\n"));

@@ -9,7 +9,7 @@ public class SystemView extends BotView{
     private final String SHUTDOWN_LINE = "The bot will shutdown now.";
     private final String SERVICE_LINE = "- %s: %s\n";
     private final String NETWORK_LINE = "- %s: %dms";
-    private final String TITLE = ":desktop: - %s";
+    private final String TITLE = ":desktop:  %s";
     private final String SERVICES_TITLE = "Services";
     private final String NETWORK_TITLE = "Network";
     private final String SHUTDOWN_TITLE = "Shutdown";

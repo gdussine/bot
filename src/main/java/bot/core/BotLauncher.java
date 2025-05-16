@@ -1,15 +1,11 @@
-package bot;
+package bot.core;
 
-import bot.core.Bot;
-import bot.core.BotFactory;
-
-public class Launcher {
+public class BotLauncher {
 
     private Bot bot;
-    private String authPath;
 
-    public Launcher(){
-        BotFactory factory = new BotFactory("bot");
+    public BotLauncher(String name){
+        BotFactory factory = new BotFactory(name);
         this.bot = factory.createBot();
     }
 
@@ -23,7 +19,7 @@ public class Launcher {
     }
 
     public static void main(String[] args) {
-        Launcher launcher = new Launcher();
+        BotLauncher launcher = new BotLauncher("bot");
         launcher.start();
 
     }

@@ -19,7 +19,7 @@ compileJava {
 }
 
 application {
-    mainClass='bot.Launcher'
+    mainClass='bot.core.BotLauncher'
 }
 
 

@@ -3,7 +3,6 @@ package bot.command.core;
 import bot.command.annotations.CommandModule;
 import bot.command.model.CommandDictionnary;
 import bot.command.model.CommandInfo;
-import bot.core.Bot;
 import bot.service.core.BotService;
 import bot.service.core.BotServiceInfo;
 import io.github.classgraph.ClassGraph;
