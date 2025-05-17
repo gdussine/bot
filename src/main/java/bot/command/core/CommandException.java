@@ -2,7 +2,8 @@ package bot.command.core;
 
 public class CommandException extends Exception {
 
-    private CommandAction action;
+	private static final long serialVersionUID = 1L;
+	private CommandAction action;
 
     public CommandException(String message, CommandAction action) {
         super(message);
