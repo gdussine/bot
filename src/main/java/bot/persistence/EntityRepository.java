@@ -2,6 +2,7 @@ package bot.persistence;
 
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 import bot.service.core.BotService;
 import jakarta.persistence.EntityManager;
@@ -53,17 +54,37 @@ public class EntityRepository<T> {
     	return getEntityManager().createQuery(criteria).getSingleResultOrNull();
     }
 
+
+    public T one(Object id){
+        return this.one((root, cb) ->{
+            return List.of(cb.equal(root.get("id"), id));
+        });
+    }
+
     public T persist(T object){
-        getEntityManager().getTransaction().begin();
-        getEntityManager().persist(object);
-        getEntityManager().getTransaction().commit();
+        inTransaction(em->em.persist(object));
         return object;
     }
 
     public T merge(T object){
-        getEntityManager().getTransaction().begin();
-        getEntityManager().merge(object);
-        getEntityManager().getTransaction().commit();
+        inTransaction(em ->em.merge(object));
         return object;
+    }
+
+    public T delete(T object){
+        inTransaction(em -> em.remove(object));
+        return object;
+    }
+
+    public List<T> delete(List<T> objects){
+        inTransaction((em)->objects.forEach(object ->em.remove(object)));
+        return objects;
+    }
+
+    public void inTransaction(Consumer<EntityManager> action){
+        getEntityManager().getTransaction().begin();
+        action.accept(getEntityManager());
+        getEntityManager().getTransaction().commit();
+
     }
 }
