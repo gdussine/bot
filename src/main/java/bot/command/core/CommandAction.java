@@ -1,7 +1,7 @@
 package bot.command.core;
 
+import bot.api.Bot;
 import bot.context.GuildContext;
-import bot.core.Bot;
 import bot.view.ExceptionView;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;

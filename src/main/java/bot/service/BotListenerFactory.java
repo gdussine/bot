@@ -1,26 +1,26 @@
-package bot.service.core;
+package bot.service;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import bot.core.Bot;
+import bot.core.BotImpl;
 
 /**
  * Manage BotListener instanciation
  */
 public class BotListenerFactory {
 
-	private Bot bot;
+	private BotImpl bot;
 	
 	private Map<Class<? extends BotListener>, BotListener> listeners = new HashMap<>();
 
-	public BotListenerFactory(Bot bot) {
+	public BotListenerFactory(BotImpl bot) {
 		this.bot = bot;
 	}
 	
 	public void createAll() {
-		bot.getBotServiceFactory().getAll().forEach(service ->{
+		bot.getServices().forEach(service ->{
 			this.create(service);
 		});
 	}

@@ -3,8 +3,8 @@ package bot.command.core;
 import bot.command.annotations.CommandModule;
 import bot.command.model.CommandDictionnary;
 import bot.command.model.CommandInfo;
-import bot.service.core.BotService;
-import bot.service.core.BotServiceInfo;
+import bot.service.BotService;
+import bot.service.BotServiceInfo;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -17,7 +17,8 @@ public class CommandService extends BotService {
 
     private CommandDictionnary commands;
 
-    public CommandService() {
+    @Override
+    public void start(){
         this.commands = new CommandDictionnary();
         try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
             for (ClassInfo classInfo : result.getSubclasses(CommandAction.class)) {
@@ -27,7 +28,7 @@ public class CommandService extends BotService {
                     continue;
                 Class<CommandAction> clazz = classInfo.loadClass(CommandAction.class);
                 commands.put(clazz);
-                this.log.info("CommandModule {} loaded.", clazz.getSimpleName());
+                this.log.info("Listen {}.", clazz.getSimpleName());
             }
         }
     }

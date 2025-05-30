@@ -1,4 +1,4 @@
-package bot.service.core;
+package bot.service;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

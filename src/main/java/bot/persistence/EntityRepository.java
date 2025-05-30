@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import bot.service.core.BotService;
+import bot.service.BotService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -14,19 +14,15 @@ import jakarta.persistence.criteria.Root;
 public class EntityRepository<T> {
 
     private Class<T> clazz;
-    private BotService service;
+    private EntityManager entityManager;
 
     public EntityRepository(Class<T> clazz, BotService service) {
         this.clazz = clazz;
-        this.service = service;
-    }
+        this.entityManager = service.getService(DatabaseService.class).getEntityManager();
 
-    public EntityManager getEntityManager(){
-        return service.getBot().getEntityManager();
     }
-
     protected CriteriaQuery<T> buildQuery(BiFunction<CriteriaBuilder,CriteriaQuery<T>, CriteriaQuery<T>> fn){
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(clazz);
         return fn.apply(builder, query);
     }
@@ -35,7 +31,7 @@ public class EntityRepository<T> {
         CriteriaQuery<T> criteria = this.buildQuery(((builder, crit) ->{
             return crit.select(crit.from(clazz));
         }));
-        return getEntityManager().createQuery(criteria).getResultList();
+        return entityManager.createQuery(criteria).getResultList();
     }
 
     public List<T> list(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicateFunct) {
@@ -43,7 +39,7 @@ public class EntityRepository<T> {
             Root<T> root = crit.from(clazz);
             return crit.select(root).where(builder.and(predicateFunct.apply(root, builder)));
         }));
-        return getEntityManager().createQuery(criteria).getResultList();
+        return entityManager.createQuery(criteria).getResultList();
     }
     
     public T one(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicateFunct) {
@@ -51,7 +47,7 @@ public class EntityRepository<T> {
             Root<T> root = crit.from(clazz);
             return crit.select(root).where(builder.and(predicateFunct.apply(root, builder)));
         }));
-    	return getEntityManager().createQuery(criteria).getSingleResultOrNull();
+    	return entityManager.createQuery(criteria).getSingleResultOrNull();
     }
 
 
@@ -82,9 +78,9 @@ public class EntityRepository<T> {
     }
 
     public void inTransaction(Consumer<EntityManager> action){
-        getEntityManager().getTransaction().begin();
-        action.accept(getEntityManager());
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().begin();
+        action.accept(entityManager);
+        entityManager.getTransaction().commit();
 
     }
 }

@@ -1,10 +1,12 @@
-package bot.service.core;
+package bot.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import bot.core.Bot;
+import bot.core.BotImpl;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -13,9 +15,9 @@ public class BotServiceFactory {
 
 	private Map<Class<? extends BotService>, BotService> services = new HashMap<>();
 
-	private Bot bot;
+	private BotImpl bot;
 
-	public BotServiceFactory(Bot bot) {
+	public BotServiceFactory(BotImpl bot) {
 		this.bot = bot;
 	}
 
@@ -31,6 +33,7 @@ public class BotServiceFactory {
 			}
 		}
 	}
+
 	public <T extends BotService> void create(Class<T> clazz) {
 		try {
 			BotServiceInfo info = clazz.getAnnotation(BotServiceInfo.class);
@@ -54,20 +57,28 @@ public class BotServiceFactory {
 	public Collection<BotService> getAll() {
 		return services.values();
 	}
-	
-	public void callbackBeforeDiscordLogin() {
-		getAll().forEach(service -> service.beforeDiscordLogin());
-	}
-	
-	public void callbackAfterDiscordLogin() {
-		getAll().forEach(service -> service.afterDiscordLogin());
-	}
-	
 
-	public void close() {
-		for (BotService service : services.values()) {
-			service.disconnect();
+	public void startAll() throws InterruptedException {
+		List<Thread> startThreads = new ArrayList<>();
+		for(BotService service : getAll()){
+			Thread thread = new Thread(() -> service.run(), "BOT %s-StartThread".formatted(service.getName()));
+			startThreads.add(thread);
+			thread.start();
+		}
+		for(Thread thread : startThreads){
+			thread.join();
 		}
 	}
 
+	public void stopAll() throws InterruptedException {
+		List<Thread> stopThreads = new ArrayList<>();
+		for(BotService service : getAll()){
+			Thread thread = new Thread(() -> service.shutdown(), "BOT %s-StopThread".formatted(service.getName()));
+			stopThreads.add(thread);
+			thread.start();
+		}
+		for(Thread thread : stopThreads){
+			thread.join();
+		}
+	}
 }

@@ -1,63 +1,69 @@
 package bot.context;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import bot.persistence.EntityRepository;
-import bot.service.core.BotService;
-import bot.service.core.BotServiceInfo;
+import bot.service.BotService;
+import bot.service.BotServiceInfo;
 import net.dv8tion.jda.api.entities.Guild;
 
 @BotServiceInfo
-public class GuildContextService extends BotService implements GuildContextProvider {
+public class GuildContextService extends BotService {
 
-	Map<Long, GuildContext> contexts = new HashMap<>();
+	Map<Long, GuildContext> contexts;
 
 	private EntityRepository<GuildContextEntry> repository;
 
-	public GuildContextService() {
-		this.repository = new EntityRepository<>(GuildContextEntry.class, this);
-	}
-
 	public Map<Long, GuildContext> getContexts() {
-		if (contexts == null) {
-			this.init();
-		}
 		return contexts;
 	}
 
-	public void init() {
-		this.contexts = new HashMap<>();
-		for (GuildContextEntry configurationEntry : repository.all()) {
-			this.loadEntry(configurationEntry);
-		}
-		this.log.info("{} contexts have been initialized", contexts.size());
+	@Override
+	public void start() throws InterruptedException {
+		this.repository = new EntityRepository<>(GuildContextEntry.class, this);
+		this.initContexts();
 	}
 
-	public void loadEntry(GuildContextEntry entry) {
-		GuildContext context = getContext(entry.getGuildId());
-		context.put(entry);
-		getContexts().put(entry.getGuildId(), context);
+	public void initContexts() {
+		this.contexts = new HashMap<>();
+		for (GuildContextEntry entry : repository.all()) {
+			GuildContext context = contexts.getOrDefault(entry.getGuildId(), new GuildContext(bot, entry.getGuildId()));
+			context.putEntry(entry);
+			contexts.put(entry.getGuildId(), context);
+		}
+		this.log.info("Initialized {} guilds.", contexts.size());
 	}
-	
-	public void updateEntry(GuildContextEntry newEntry) {
-		GuildContextEntry oldEntry = repository.one((root, builder) ->{
-			return List.of(
-					builder.equal(root.get("contextKey"), newEntry.getContextKey()),
-					builder.equal(root.get("guildId"), newEntry.getGuildId()));
-		});
-		if(oldEntry == null) {
+
+	public void setContextEntry(Guild guild, String key, String value) {
+		GuildContextEntry newEntry = new GuildContextEntry(guild.getIdLong(), key, value);
+		GuildContextEntry oldEntry = this.getContext(newEntry.getGuildId()).getEntry(newEntry.getContextKey());
+		if (oldEntry == null) {
 			repository.persist(newEntry);
 		} else {
 			newEntry.setId(oldEntry.getId());
 			repository.merge(newEntry);
 		}
-		getContext(newEntry.getGuildId()).put(newEntry);
+		this.getContext(newEntry.getGuildId()).putEntry(newEntry);
+		this.log.info("Set {} to \"{}\" for {}.",
+				newEntry.getContextKey(),
+				newEntry.getContextValue(),
+				bot.getJda().getGuildById(newEntry.getGuildId()).getName());
 	}
 
+	public void removeContextEntry(Guild guild, String key) {
+		GuildContext context = getContext(guild);
+		GuildContextEntry oldEntry = context.getEntry(key);
+		context.remove(key);
+		repository.delete(oldEntry);
+	}
 
 	public GuildContext getContext(long guildId) {
+		try {
+			this.awaitRunning();
+		} catch (InterruptedException e) {
+			this.log.error("Context not initialized.");
+		}
 		GuildContext context = getContexts().get(guildId);
 		if (context == null) {
 			context = new GuildContext(getBot(), guildId);

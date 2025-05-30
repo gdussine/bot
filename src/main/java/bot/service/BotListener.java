@@ -1,4 +1,4 @@
-package bot.service.core;
+package bot.service;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -13,6 +13,4 @@ public class BotListener extends ListenerAdapter {
     public void setService(BotService service) {
         this.service = service;
     }
-    
-
 }

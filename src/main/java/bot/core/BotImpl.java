@@ -1,52 +1,36 @@
 package bot.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Collection;
 
+import bot.api.Bot;
 import bot.context.GuildContext;
-import bot.context.GuildContextProvider;
 import bot.context.GuildContextService;
-import bot.persistence.DatabaseService;
-import bot.service.core.BotService;
-import bot.service.core.BotServiceFactory;
-import jakarta.persistence.EntityManager;
+import bot.service.BotService;
+import bot.service.BotServiceFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class Bot implements GuildContextProvider{
+public class BotImpl extends BotLaunchable implements Bot{
 
     protected JDA jda;
     protected JDABuilder jdaBuilder;
-    protected Logger log;
     protected String name;
     private BotServiceFactory botServiceFactory;
     private BotConfiguration configuration;;
 
-
-    public Bot() {
-        this.log = LoggerFactory.getLogger(getClass());
-    }
-
-    public void login() {
-    	botServiceFactory.callbackBeforeDiscordLogin();
+    @Override
+    public void start() throws InterruptedException {
+        botServiceFactory.startAll();
         jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
-        try {
-            jda.awaitReady();
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-        }
-        botServiceFactory.callbackAfterDiscordLogin();
+        jda.awaitReady();
     }
 
-    public void logout() {
-        jda.shutdownNow();
-        try {
+    @Override
+    public void stop() throws InterruptedException {
+            botServiceFactory.stopAll();    
+            jda.shutdownNow();
             jda.awaitShutdown();
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-        }
-        botServiceFactory.close();
     }
 
     public JDABuilder getJdaBuilder() {
@@ -61,22 +45,16 @@ public class Bot implements GuildContextProvider{
         return botServiceFactory;
     }
 
-    @Override
     public GuildContext getContext(long guildId) {
-        return this.get(GuildContextService.class).getContext(guildId);
+        return this.getService(GuildContextService.class).getContext(guildId);
     }
 
-    @Override
     public GuildContext getContext(Guild guild) {
-        return this.get(GuildContextService.class).getContext(guild);
+        return this.getService(GuildContextService.class).getContext(guild);
     }
 
-    public <T extends BotService> T get(Class<T> serviceClass) {
+    public <T extends BotService> T getService(Class<T> serviceClass) {
         return botServiceFactory.get(serviceClass);
-    }
-
-    public EntityManager getEntityManager() {
-        return this.get(DatabaseService.class).getEntityManager();
     }
 
     public JDA getJda() {
@@ -89,14 +67,6 @@ public class Bot implements GuildContextProvider{
 
     public void setJdaBuilder(JDABuilder jdaBuilder) {
         this.jdaBuilder = jdaBuilder;
-    }
-
-    public Logger getLog() {
-        return log;
-    }
-
-    public void setLog(Logger log) {
-        this.log = log;
     }
 
     public void setBotServiceFactory(BotServiceFactory botServiceFactory) {
@@ -115,5 +85,12 @@ public class Bot implements GuildContextProvider{
         return name;
     }
 
-    
+    @Override
+    public Collection<BotService> getServices() {
+        return botServiceFactory.getAll();
+    }
+
+
+
+
 }

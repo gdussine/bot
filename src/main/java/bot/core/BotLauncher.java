@@ -1,5 +1,7 @@
 package bot.core;
 
+import bot.api.Bot;
+
 public class BotLauncher {
 
     private Bot bot;
@@ -15,7 +17,7 @@ public class BotLauncher {
 
 
     public void start() {
-        bot.login();
+        bot.run();
     }
 
     public static void main(String[] args) {

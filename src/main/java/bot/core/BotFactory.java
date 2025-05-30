@@ -3,9 +3,10 @@ package bot.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import bot.api.Bot;
 import bot.platform.PlatformService;
-import bot.service.core.BotListenerFactory;
-import bot.service.core.BotServiceFactory;
+import bot.service.BotListenerFactory;
+import bot.service.BotServiceFactory;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
@@ -17,11 +18,11 @@ public class BotFactory {
 
     protected BotServiceFactory botServiceFactory;
     protected BotConfiguration botConfiguration;
-    protected Bot bot;
+    protected BotImpl bot;
     private BotListenerFactory botListenerFactory;
 
     public BotFactory(String name) {
-        this.bot = new Bot();
+        this.bot = new BotImpl();
         this.botServiceFactory = new BotServiceFactory(bot);
         this.botListenerFactory = new BotListenerFactory(bot);
         this.name = name;
@@ -37,7 +38,6 @@ public class BotFactory {
         botListenerFactory.createAll();
         botConfiguration =  botServiceFactory.get(PlatformService.class).getBotConfiguration();
         bot.setConfiguration(botConfiguration);
-
         return bot;
     }
 }

@@ -3,7 +3,7 @@ package bot.context;
 import java.util.HashMap;
 import java.util.Map;
 
-import bot.core.Bot;
+import bot.api.Bot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 public class GuildContext {
 
     protected Bot bot;
-    private Map<String, String> configuration = new HashMap<>();
+    private Map<String, GuildContextEntry> contextMap = new HashMap<>();
     private Long guildId;
 
     public GuildContext(Bot bot, Long guildId) {
@@ -24,37 +24,48 @@ public class GuildContext {
     public Bot geBot() {
         return bot;
     }
-    
-    public Guild getGuild() {
-		return bot.getJda().getGuildById(guildId);
-	}
 
-    public Map<String, String> getConfiguration() {
-		return configuration;
-	}
+    public Guild getGuild() {
+        return bot.getJda().getGuildById(guildId);
+    }
 
     public Role getRole(String key) {
-    	return getGuild().getRoleById(configuration.get(key));
+        return getGuild().getRoleById(this.get(key));
     }
 
     public TextChannel getTextChannel(String key) {
-    	return getGuild().getTextChannelById(configuration.get(key));
+        return getGuild().getTextChannelById(this.get(key));
     }
 
     public VoiceChannel getVoiceChannel(String key) {
-    	return getGuild().getVoiceChannelById(configuration.get(key));
+        return getGuild().getVoiceChannelById(this.get(key));
     }
 
     public Emoji getEmoji(String key) {
-    	return getGuild().getEmojiById(configuration.get(key));
+        return getGuild().getEmojiById(this.get(key));
     }
-    
-    public String getString(String key) {
-    	return configuration.get(key);
+
+    public GuildContextEntry getEntry(String key) {
+        return contextMap.get(key);
     }
-    
-    public void put(GuildContextEntry entry) {
-    	configuration.put(entry.getContextKey(), entry.getContextValue());
+
+    public void putEntry(GuildContextEntry entry) {
+        contextMap.put(entry.getContextKey(), entry);
+    }
+
+    public String get(String key) {
+        GuildContextEntry entry = getEntry(key);
+        if (entry == null)
+            return null;
+        return entry.getContextValue();
+    }
+
+    public Map<String, GuildContextEntry> getContextMap() {
+        return contextMap;
+    }
+
+    public void remove(String key) {
+        contextMap.remove(key);
     }
 
 }

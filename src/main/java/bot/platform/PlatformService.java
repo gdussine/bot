@@ -9,8 +9,8 @@ import java.util.Scanner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bot.core.BotConfiguration;
-import bot.service.core.BotService;
-import bot.service.core.BotServiceInfo;
+import bot.service.BotService;
+import bot.service.BotServiceInfo;
 import okio.Path;
 
 @BotServiceInfo

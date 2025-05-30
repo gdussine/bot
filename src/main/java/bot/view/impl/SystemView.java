@@ -1,8 +1,9 @@
-package bot.view;
+package bot.view.impl;
 
 import java.util.Collection;
 
-import bot.service.core.BotService;
+import bot.service.BotService;
+import bot.view.BotView;
 
 public class SystemView extends BotView{
 
@@ -36,7 +37,7 @@ public class SystemView extends BotView{
     public SystemView toServicesView(Collection<BotService> services) {
         StringBuilder sb = new StringBuilder();
         services.forEach(service -> sb.append(
-                SERVICE_LINE.formatted(service.getClass().getSimpleName(), service.isConnected() ? "ON" : "OFF")));
+                SERVICE_LINE.formatted(service.getClass().getSimpleName(), service.getStatus().isOn() ? "ON" : "OFF")));
         template.setDescription(sb.toString());
         return this.setSystemTitle(SERVICES_TITLE);
     }
