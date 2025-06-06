@@ -10,14 +10,9 @@ public abstract class BotService extends BotLaunchable {
 	protected Bot bot;
 	protected BotListener listener;
 
-
 	public Bot getBot() {
 		return bot;
 	}
-
-	public <T> EntityFacade<T> entity(Class<T> type){
-		return getRunningService(EntityService.class).entity(type);
-	} 
 
 	public BotListener getListener() {
 		return listener;
@@ -27,16 +22,14 @@ public abstract class BotService extends BotLaunchable {
 		return this.getClass().getSimpleName();
 	}
 
-	@Deprecated
-	public <T extends BotService> T getService(Class<T> clazz){
-		T service = bot.getService(clazz);
-		return service;
-	}
-
-	public <T extends BotService> T getRunningService(Class<T> type){
+	public <T extends BotService> T getRunningService(Class<T> type) {
 		T service = bot.getService(type);
 		service.awaitRunning().join();
 		return service;
+	}
+
+	public <T> EntityFacade<T> entity(Class<T> type) {
+		return getRunningService(EntityService.class).genericEntity(type);
 	}
 
 	public void setBot(Bot bot) {
@@ -49,7 +42,7 @@ public abstract class BotService extends BotLaunchable {
 
 	@Override
 	public void start() {
-		
+
 	}
 
 	@Override

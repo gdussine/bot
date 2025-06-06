@@ -13,9 +13,20 @@ public class EntityFacade<T> {
     private EntityService entityService;
     private Class<T> type;
 
-    public EntityFacade(EntityService entityService, Class<T> type) {
-        this.entityService = entityService;
+    public EntityFacade(Class<T> type) {
         this.type = type;
+    }
+
+    public EntityService getEntityService() {
+        return entityService;
+    }
+
+    public void setEntityService(EntityService entityService) {
+        this.entityService = entityService;
+    }
+
+    public Class<T> getType() {
+        return type;
     }
 
     public T persist(T object) {
@@ -45,8 +56,8 @@ public class EntityFacade<T> {
         });
     }
 
-    protected List<T> query(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicateFunct){
-        return entityService.withTransaction(em ->{
+    protected List<T> query(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicateFunct) {
+        return entityService.withTransaction(em -> {
             CriteriaBuilder builder = em.getCriteriaBuilder();
             CriteriaQuery<T> query = builder.createQuery(type);
             Root<T> root = query.from(type);
@@ -56,28 +67,27 @@ public class EntityFacade<T> {
     }
 
     public List<T> all() {
-        return query((root, cb) ->{
+        return query((root, cb) -> {
             return List.of(cb.conjunction());
         });
     }
 
-    public List<T> list(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicates){
+    public List<T> list(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicates) {
         return query(predicates);
     }
 
-    public T one(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicates){
+    public T one(BiFunction<Root<T>, CriteriaBuilder, List<Predicate>> predicates) {
         List<T> result = query(predicates);
-        if(result.isEmpty())
+        if (result.isEmpty())
             return null;
         else
             return result.getFirst();
     }
 
     public T one(Object id) {
-        return entityService.withTransaction(em ->{
+        return entityService.withTransaction(em -> {
             return em.find(type, id);
         });
     }
 
 }
-
