@@ -1,72 +1,79 @@
 package bot.core;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BotLaunchable {
 
 	protected Logger log;
-	protected BotLaunchableStatus status;
+	protected AtomicReference<BotLaunchableStatus> synchronizedStatus;
+	protected ConcurrentHashMap<BotLaunchableStatus, CompletableFuture<Void>> waiters = new ConcurrentHashMap<>();
 
 	public BotLaunchable() {
 		this.log = LoggerFactory.getLogger(this.getClass());
-		this.status = BotLaunchableStatus.OFF;
+		this.synchronizedStatus = new AtomicReference<>(BotLaunchableStatus.CREATED);
+	}
+
+	private void setStatus(BotLaunchableStatus status) {
+		this.synchronizedStatus.set(status);
+		CompletableFuture<Void> waiter = waiters.get(status);
+		if (waiter != null) {
+			waiter.complete(null);
+		}
+	}
+
+	public BotLaunchableStatus getStatus(){
+		return this.synchronizedStatus.get();
 	}
 
 	public void run() {
-		BotLaunchableStatus targetStatus = BotLaunchableStatus.ON;
-		try {
+		try{
 			this.start();
-			synchronized (this) {
-				this.status = targetStatus;
-				this.notify();
-			}
+			this.setStatus(BotLaunchableStatus.RUNNING);
 			log.info("Started.");
-		} catch (InterruptedException e) {
-			log.error("Fail to start.", e);
+		} catch(Exception e){
+			log.error("Failed to run", e);;
 		}
 	}
 
 	public void shutdown() {
-		BotLaunchableStatus targetStatus = BotLaunchableStatus.OFF;
-		try {
-			this.stop();
-			synchronized (this) {
-				this.status = targetStatus;
-				this.notify();
-			}
-			log.info("Stopped.");
-		} catch (InterruptedException e) {
-			log.error("Fail to stop", e);
+		try{
+		this.stop();
+		this.setStatus(BotLaunchableStatus.SHUTDOWN);
+		log.info("Stopped.");
+		} catch(Exception e){
+			log.error("Failed to shutdown", e);
 		}
 	}
 
-	private void awaitStatus(BotLaunchableStatus status) throws InterruptedException {
-		while (!status.equals(this.status)) {
-			synchronized (this) {
-				this.wait();
-			}
+	private CompletableFuture<Void> awaitStatus(BotLaunchableStatus status) {
+		if (synchronizedStatus.get() == status) {
+			return CompletableFuture.completedFuture(null);
 		}
+		return waiters.computeIfAbsent(status, s -> new CompletableFuture<Void>().exceptionally(err -> {
+			this.log.error("Not %s".formatted(status.name()));
+			return null;
+		}));
 	}
 
-	public void awaitRunning() throws InterruptedException {
-		this.awaitStatus(BotLaunchableStatus.ON);
+	public CompletableFuture<Void> awaitRunning() {
+		return this.awaitStatus(BotLaunchableStatus.RUNNING);
 	}
 
-	public void awaitShuttingDown() throws InterruptedException {
-		this.awaitStatus(BotLaunchableStatus.OFF);
+	public CompletableFuture<Void> awaitShuttingDown() {
+		return this.awaitStatus(BotLaunchableStatus.SHUTDOWN);
 	}
 
 	public Logger getLog() {
 		return log;
 	}
 
-	public BotLaunchableStatus getStatus() {
-		return status;
-	}
+	public abstract void start();
 
-	public abstract void start() throws InterruptedException;
-
-	public abstract void stop() throws InterruptedException;
+	public abstract void stop();
 
 }

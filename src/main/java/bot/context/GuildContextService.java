@@ -20,7 +20,7 @@ public class GuildContextService extends BotService {
 	}
 
 	@Override
-	public void start() throws InterruptedException {
+	public void start() {
 		this.repository = new EntityRepository<>(GuildContextEntry.class, this);
 		this.initContexts();
 	}
@@ -59,11 +59,7 @@ public class GuildContextService extends BotService {
 	}
 
 	public GuildContext getContext(long guildId) {
-		try {
-			this.awaitRunning();
-		} catch (InterruptedException e) {
-			this.log.error("Context not initialized.");
-		}
+		this.awaitRunning().join();
 		GuildContext context = getContexts().get(guildId);
 		if (context == null) {
 			context = new GuildContext(getBot(), guildId);

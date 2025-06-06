@@ -1,5 +1,6 @@
 package bot.service;
 
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,16 +28,16 @@ public class BotListenerFactory {
 
 	public BotListener create(BotService service) {
 		try {
-			Class<? extends BotListener> botListenerType  = service.getClass().getAnnotation(BotServiceInfo.class).listener();
-			if (botListenerType.equals(BotListener.class))
+			Class<? extends BotListener> type  = service.getClass().getAnnotation(BotServiceInfo.class).listener();
+			if (Modifier.isAbstract(type.getModifiers()))
 				return null;
-			BotListener listener = botListenerType.getConstructor().newInstance();
+			BotListener listener = type.getConstructor().newInstance();
 			listener.setService(service);
 			service.setListener(listener);
 			bot.getJdaBuilder().addEventListeners(listener);
-			listeners.put(botListenerType, listener);
+			listeners.put(type, listener);
 		} catch (Exception e) {
-			e.printStackTrace();
+			service.getLog().error("Listener creation failed", e);
 		}
 		return null;
 	}

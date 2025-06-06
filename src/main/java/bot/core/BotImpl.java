@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class BotImpl extends BotLaunchable implements Bot{
+public class BotImpl extends BotLaunchable implements Bot {
 
     protected JDA jda;
     protected JDABuilder jdaBuilder;
@@ -20,17 +20,26 @@ public class BotImpl extends BotLaunchable implements Bot{
     private BotConfiguration configuration;;
 
     @Override
-    public void start() throws InterruptedException {
-        botServiceFactory.startAll();
-        jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
-        jda.awaitReady();
+    public void start() {
+        try {
+            botServiceFactory.startAll();
+            jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
+            jda.awaitReady();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void stop() throws InterruptedException {
-            botServiceFactory.stopAll();    
+    public void stop() {
+        try {
+            botServiceFactory.stopAll();
             jda.shutdownNow();
             jda.awaitShutdown();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public JDABuilder getJdaBuilder() {
@@ -89,8 +98,5 @@ public class BotImpl extends BotLaunchable implements Bot{
     public Collection<BotService> getServices() {
         return botServiceFactory.getAll();
     }
-
-
-
 
 }

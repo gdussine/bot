@@ -37,7 +37,7 @@ public class SystemView extends BotView{
     public SystemView toServicesView(Collection<BotService> services) {
         StringBuilder sb = new StringBuilder();
         services.forEach(service -> sb.append(
-                SERVICE_LINE.formatted(service.getClass().getSimpleName(), service.getStatus().isOn() ? "ON" : "OFF")));
+                SERVICE_LINE.formatted(service.getClass().getSimpleName(), service.getStatus().name())));
         template.setDescription(sb.toString());
         return this.setSystemTitle(SERVICES_TITLE);
     }

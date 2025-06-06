@@ -33,12 +33,12 @@ public abstract class BotService extends BotLaunchable {
 	}
 
 	@Override
-	public void start() throws InterruptedException {
+	public void start() {
 		
 	}
 
 	@Override
-	public void stop() throws InterruptedException {
+	public void stop() {
 	}
 
 }

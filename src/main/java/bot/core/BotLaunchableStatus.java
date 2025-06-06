@@ -2,15 +2,20 @@ package bot.core;
 
 public enum BotLaunchableStatus {
 
-    ON,
-    OFF;
+    CREATED, 
+    RUNNING,
+    SHUTDOWN;
 
-    public boolean isOn(){
-        return ON.equals(this);
+    public boolean isCreated(){
+        return CREATED.equals(this);
     }
 
-    public boolean isOff(){
-        return OFF.equals(this);
+    public boolean isRunning(){
+        return RUNNING.equals(this);
+    }
+
+    public boolean isShutDown(){
+        return SHUTDOWN.equals(this);
     }
 
 }

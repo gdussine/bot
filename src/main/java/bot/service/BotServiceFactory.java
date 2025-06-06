@@ -1,10 +1,11 @@
 package bot.service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import bot.core.BotImpl;
 import io.github.classgraph.ClassGraph;
@@ -36,14 +37,8 @@ public class BotServiceFactory {
 
 	public <T extends BotService> void create(Class<T> clazz) {
 		try {
-			BotServiceInfo info = clazz.getAnnotation(BotServiceInfo.class);
 			BotService service = clazz.getConstructor().newInstance();
 			service.setBot(bot);
-			BotListener listener = info.listener().getConstructor().newInstance();
-			if (listener != null) {
-				listener.setService(service);
-				service.setListener(listener);
-			}
 			services.put(service.getClass(), service);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -59,26 +54,20 @@ public class BotServiceFactory {
 	}
 
 	public void startAll() throws InterruptedException {
-		List<Thread> startThreads = new ArrayList<>();
-		for(BotService service : getAll()){
-			Thread thread = new Thread(() -> service.run(), "BOT %s-StartThread".formatted(service.getName()));
-			startThreads.add(thread);
-			thread.start();
+		ExecutorService executor = Executors.newFixedThreadPool(services.size());
+		for (BotService service : getAll()) {
+			executor.submit(() -> service.run());
 		}
-		for(Thread thread : startThreads){
-			thread.join();
-		}
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
 	}
 
 	public void stopAll() throws InterruptedException {
-		List<Thread> stopThreads = new ArrayList<>();
+		ExecutorService executor = Executors.newFixedThreadPool(services.size());
 		for(BotService service : getAll()){
-			Thread thread = new Thread(() -> service.shutdown(), "BOT %s-StopThread".formatted(service.getName()));
-			stopThreads.add(thread);
-			thread.start();
+			executor.submit(()->service.shutdown());
 		}
-		for(Thread thread : stopThreads){
-			thread.join();
-		}
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
 	}
 }

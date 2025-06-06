@@ -22,29 +22,17 @@ public class DatabaseService extends BotService {
 	private EntityManager entityManager;
 	private PersistenceConfiguration configuration;
 
-
 	public EntityManagerFactory getEntityManagerFactory() {
 		return entityManagerFactory;
 	}
 
 	public EntityManager getEntityManager() {
-		try {
-			this.awaitRunning();
-			return entityManager;
-		} catch (InterruptedException e) {
-			log.error("EntityManager is not instanciate.", e);
-			return null;
-		}
+			return this.awaitRunning().thenApply(v -> this.entityManager).join();
 	}
 
 	@Override
 	public void start() {
 		PlatformService platformService = getBot().getService(PlatformService.class);
-		try {
-			platformService.awaitRunning();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		BotConfiguration botConfig = platformService.getBotConfiguration();
 		this.configuration = new PersistenceConfiguration("bot.persistence")
 				.provider("org.hibernate.jpa.HibernatePersistenceProvider")
