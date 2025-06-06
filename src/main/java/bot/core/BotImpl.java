@@ -20,26 +20,17 @@ public class BotImpl extends BotLaunchable implements Bot {
     private BotConfiguration configuration;;
 
     @Override
-    public void start() {
-        try {
-            botServiceFactory.startAll();
-            jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
-            jda.awaitReady();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public void start() throws InterruptedException {
+        botServiceFactory.startAll();
+        jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
+        jda.awaitReady();
     }
 
     @Override
-    public void stop() {
-        try {
-            botServiceFactory.stopAll();
-            jda.shutdownNow();
-            jda.awaitShutdown();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public void stop() throws InterruptedException {
+        botServiceFactory.stopAll();
+        jda.shutdownNow();
+        jda.awaitShutdown();
     }
 
     public JDABuilder getJdaBuilder() {

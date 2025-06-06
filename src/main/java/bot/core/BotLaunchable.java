@@ -26,38 +26,40 @@ public abstract class BotLaunchable {
 		}
 	}
 
-	public BotLaunchableStatus getStatus(){
+	public BotLaunchableStatus getStatus() {
 		return this.synchronizedStatus.get();
 	}
 
 	public void run() {
-		try{
+		try {
 			this.start();
 			this.setStatus(BotLaunchableStatus.RUNNING);
 			log.info("Started.");
-		} catch(Exception e){
-			log.error("Failed to run", e);;
+		} catch (Exception e) {
+			log.error("Failed to run", e);
+			;
 		}
 	}
 
 	public void shutdown() {
-		try{
-		this.stop();
-		this.setStatus(BotLaunchableStatus.SHUTDOWN);
-		log.info("Stopped.");
-		} catch(Exception e){
+		try {
+			this.stop();
+			this.setStatus(BotLaunchableStatus.SHUTDOWN);
+			log.info("Stopped.");
+		} catch (Exception e) {
 			log.error("Failed to shutdown", e);
 		}
 	}
 
 	private CompletableFuture<Void> awaitStatus(BotLaunchableStatus status) {
-		if (synchronizedStatus.get() == status) {
+		if (synchronizedStatus.get() == status)
 			return CompletableFuture.completedFuture(null);
-		}
-		return waiters.computeIfAbsent(status, s -> new CompletableFuture<Void>().exceptionally(err -> {
-			this.log.error("Not %s".formatted(status.name()));
-			return null;
-		}));
+		return waiters.computeIfAbsent(status, s -> {
+			return new CompletableFuture<Void>().whenComplete((v, err) -> {
+				if (err != null)
+					this.log.error("Not %s".formatted(status.name()), err);
+			});
+		});
 	}
 
 	public CompletableFuture<Void> awaitRunning() {
@@ -72,8 +74,8 @@ public abstract class BotLaunchable {
 		return log;
 	}
 
-	public abstract void start();
+	public abstract void start() throws Exception;
 
-	public abstract void stop();
+	public abstract void stop() throws Exception;
 
 }

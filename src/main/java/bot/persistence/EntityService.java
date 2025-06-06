@@ -1,5 +1,6 @@
 package bot.persistence;
 
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import bot.core.BotConfiguration;
@@ -12,22 +13,20 @@ import io.github.classgraph.ScanResult;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceConfiguration;
 
 @BotServiceInfo
-public class DatabaseService extends BotService {
+public class EntityService extends BotService {
 
-	private EntityManagerFactory entityManagerFactory;
+	private EntityManagerFactory emf;
 	private EntityManager entityManager;
 	private PersistenceConfiguration configuration;
 
-	public EntityManagerFactory getEntityManagerFactory() {
-		return entityManagerFactory;
-	}
-
+	@Deprecated
 	public EntityManager getEntityManager() {
-			return this.awaitRunning().thenApply(v -> this.entityManager).join();
+		return this.awaitRunning().thenApply(v -> this.entityManager).join();
 	}
 
 	@Override
@@ -45,16 +44,35 @@ public class DatabaseService extends BotService {
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
 			for (ClassInfo classInfo : result.getClassesWithAnnotation(Entity.class)) {
 				configuration.managedClass(classInfo.loadClass());
-				this.log.info("Manage {}.", classInfo.getSimpleName());
+				this.log.info("Create Table {}.", classInfo.getSimpleName());
 			}
 		}
 		java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE);
-		this.entityManagerFactory = Persistence.createEntityManagerFactory(configuration);
-		this.entityManager = entityManagerFactory.createEntityManager();
+		this.emf = Persistence.createEntityManagerFactory(configuration);
+	}
+
+	public <T> T withTransaction(Function<EntityManager, T> func) {
+		try (EntityManager em = emf.createEntityManager()) {
+			EntityTransaction tx = em.getTransaction();
+			try {
+				tx.begin();
+				T result = func.apply(em);
+				tx.commit();
+				return result;
+			} catch (Exception e) {
+				this.log.error("Transaction failed", e);
+				if (tx.isActive())
+					tx.rollback();
+				throw e;
+			}
+		}
+	}
+
+	public <T> EntityFacade<T> entity(Class<T> type){
+		return new EntityFacade<>(this, type);
 	}
 
 	public void stop() {
-		this.entityManager.close();
-		this.entityManagerFactory.close();
+		this.emf.close();
 	}
 }

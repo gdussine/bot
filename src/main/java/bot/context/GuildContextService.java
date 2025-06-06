@@ -3,17 +3,15 @@ package bot.context;
 import java.util.HashMap;
 import java.util.Map;
 
-import bot.persistence.EntityRepository;
 import bot.service.BotService;
 import bot.service.BotServiceInfo;
 import net.dv8tion.jda.api.entities.Guild;
+
 
 @BotServiceInfo
 public class GuildContextService extends BotService {
 
 	Map<Long, GuildContext> contexts;
-
-	private EntityRepository<GuildContextEntry> repository;
 
 	public Map<Long, GuildContext> getContexts() {
 		return contexts;
@@ -21,13 +19,12 @@ public class GuildContextService extends BotService {
 
 	@Override
 	public void start() {
-		this.repository = new EntityRepository<>(GuildContextEntry.class, this);
 		this.initContexts();
 	}
 
 	public void initContexts() {
 		this.contexts = new HashMap<>();
-		for (GuildContextEntry entry : repository.all()) {
+		for (GuildContextEntry entry : entity(GuildContextEntry.class).all()) {
 			GuildContext context = contexts.getOrDefault(entry.getGuildId(), new GuildContext(bot, entry.getGuildId()));
 			context.putEntry(entry);
 			contexts.put(entry.getGuildId(), context);
@@ -36,14 +33,13 @@ public class GuildContextService extends BotService {
 	}
 
 	public void setContextEntry(Guild guild, String key, String value) {
+
 		GuildContextEntry newEntry = new GuildContextEntry(guild.getIdLong(), key, value);
 		GuildContextEntry oldEntry = this.getContext(newEntry.getGuildId()).getEntry(newEntry.getContextKey());
-		if (oldEntry == null) {
-			repository.persist(newEntry);
-		} else {
+		if (oldEntry != null) {
 			newEntry.setId(oldEntry.getId());
-			repository.merge(newEntry);
 		}
+		newEntry = entity(GuildContextEntry.class).merge(newEntry);
 		this.getContext(newEntry.getGuildId()).putEntry(newEntry);
 		this.log.info("Set {} to \"{}\" for {}.",
 				newEntry.getContextKey(),
@@ -55,7 +51,7 @@ public class GuildContextService extends BotService {
 		GuildContext context = getContext(guild);
 		GuildContextEntry oldEntry = context.getEntry(key);
 		context.remove(key);
-		repository.delete(oldEntry);
+		entity(GuildContextEntry.class).delete(oldEntry);
 	}
 
 	public GuildContext getContext(long guildId) {
