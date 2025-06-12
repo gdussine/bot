@@ -29,19 +29,19 @@ public class GuildContext {
         return bot.getJda().getGuildById(guildId);
     }
 
-    public Role getRole(String key) {
+    public Role getRole(String key) throws GuildContextException {
         return getGuild().getRoleById(this.get(key));
     }
 
-    public TextChannel getTextChannel(String key) {
+    public TextChannel getTextChannel(String key) throws GuildContextException {
         return getGuild().getTextChannelById(this.get(key));
     }
 
-    public VoiceChannel getVoiceChannel(String key) {
+    public VoiceChannel getVoiceChannel(String key) throws GuildContextException {
         return getGuild().getVoiceChannelById(this.get(key));
     }
 
-    public Emoji getEmoji(String key) {
+    public Emoji getEmoji(String key) throws GuildContextException {
         return getGuild().getEmojiById(this.get(key));
     }
 
@@ -53,10 +53,10 @@ public class GuildContext {
         contextMap.put(entry.getContextKey(), entry);
     }
 
-    public String get(String key) {
+    public String get(String key) throws GuildContextException {
         GuildContextEntry entry = getEntry(key);
         if (entry == null)
-            return null;
+            throw new GuildContextException(key);
         return entry.getContextValue();
     }
 

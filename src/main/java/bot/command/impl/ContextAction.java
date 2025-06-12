@@ -13,7 +13,7 @@ public class ContextAction extends CommandAction {
 
     @CommandDescription("Insert guild context entry")
     public void insert(
-            @CommandOption(description = "Context key") String key,
+            @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key,
             @CommandOption(description = "Context value") String value) {
         bot.getService(GuildContextService.class).setContextEntry(interaction.getGuild(), key, value);
         this.view();
@@ -26,7 +26,7 @@ public class ContextAction extends CommandAction {
 
     @CommandDescription("Delete guild context entry")
     public void delete(
-            @CommandOption(description = "Context key") String key) {
+            @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key) {
         bot.getService(GuildContextService.class).removeContextEntry(interaction.getGuild(), key);
         this.view();
         

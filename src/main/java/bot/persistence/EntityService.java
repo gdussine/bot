@@ -68,20 +68,9 @@ public class EntityService extends BotService {
 		}
 	}
 
-	public <T> EntityFacade<T> genericEntity(Class<T> type) {
-		EntityFacade<T> facade = new EntityFacade<>(type);
-		facade.setEntityService(this);
-		return facade;
-	}
-
-	public <Y extends EntityFacade<?>> Y customEntity(Class<Y> facadeType) {
-		try {
-			Y facade = facadeType.getConstructor().newInstance();
-			return facade;
-		} catch (Exception e) {
-			this.log.error("Build of %s failed".formatted(facadeType.getSimpleName()), e);
-			return null;
-		}
+	public <T> EntityRepository<T> generateEntityRepository(Class<T> type) {
+		return new EntityRepository<>(this, type);
+		
 	}
 
 	public void stop() {

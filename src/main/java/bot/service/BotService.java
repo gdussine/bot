@@ -2,7 +2,7 @@ package bot.service;
 
 import bot.api.Bot;
 import bot.core.BotLaunchable;
-import bot.persistence.EntityFacade;
+import bot.persistence.EntityRepository;
 import bot.persistence.EntityService;
 
 public abstract class BotService extends BotLaunchable {
@@ -28,8 +28,8 @@ public abstract class BotService extends BotLaunchable {
 		return service;
 	}
 
-	public <T> EntityFacade<T> entity(Class<T> type) {
-		return getRunningService(EntityService.class).genericEntity(type);
+	public <T> EntityRepository<T> getRepository(Class<T> type) {
+		return getRunningService(EntityService.class).generateEntityRepository(type);
 	}
 
 	public void setBot(Bot bot) {
