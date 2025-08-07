@@ -1,9 +1,13 @@
 package bot.context;
 
-public class GuildContextException extends Exception{
+public class GuildContextException extends Exception {
 
-    public GuildContextException(String contextKey){
-        super("GuildContext key %s not found".formatted(contextKey));
+    public GuildContextException(String message) {
+        super(message);
+    }
+    
+    public static GuildContextException unknownKey(String keyName) {
+        return new GuildContextException("GuildContextKey __%s__ is unknown".formatted(keyName));
     }
 
 }

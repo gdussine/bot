@@ -12,7 +12,7 @@ public class ContextAutoCompleter extends CommandAutoCompleter {
 
     @Override
     public List<Choice> getChoices(Bot bot, CommandAutoCompleteInteraction interaction) {
-        return bot.getService(GuildContextService.class).getKeys().stream().map(x->new Choice(x,x)).toList();
+        return bot.getService(GuildContextService.class).getKeys().stream().map(x->new Choice(x.getName(),x.getName())).toList();
     }
 
 }

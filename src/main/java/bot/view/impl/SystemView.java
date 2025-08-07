@@ -2,18 +2,18 @@ package bot.view.impl;
 
 import java.util.Collection;
 
-import bot.service.BotService;
+import bot.api.BotService;
 import bot.view.BotView;
 
 public class SystemView extends BotView{
 
     private final String SHUTDOWN_LINE = "The bot will shutdown now.";
-    private final String SERVICE_LINE = "- %s: %s\n";
+    private final String SERVICE_LINE = "%s %s\n";
     private final String NETWORK_LINE = "- %s: %dms";
     private final String TITLE = ":desktop:  %s";
-    private final String SERVICES_TITLE = "Services";
-    private final String NETWORK_TITLE = "Network";
-    private final String SHUTDOWN_TITLE = "Shutdown";
+    private final String SERVICES_TITLE = "SERVICES";
+    private final String NETWORK_TITLE = "NETWORK";
+    private final String SHUTDOWN_TITLE = "SHUTDOWN";
 
     public SystemView(){
         this.template.setColor(blue);
@@ -37,7 +37,7 @@ public class SystemView extends BotView{
     public SystemView toServicesView(Collection<BotService> services) {
         StringBuilder sb = new StringBuilder();
         services.forEach(service -> sb.append(
-                SERVICE_LINE.formatted(service.getClass().getSimpleName(), service.getStatus().name())));
+                SERVICE_LINE.formatted(service.getHandler().getStatus().getEmoji(), service.getClass().getSimpleName())));
         template.setDescription(sb.toString());
         return this.setSystemTitle(SERVICES_TITLE);
     }

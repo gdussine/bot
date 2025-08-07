@@ -6,6 +6,7 @@ import java.util.List;
 import bot.command.annotations.CommandDescription;
 import bot.command.annotations.CommandModule;
 import bot.command.core.CommandAction;
+import bot.command.exception.CommandException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -72,12 +73,20 @@ public class CommandInfo {
         return method;
     }
 
+    public String getCommandName(){
+        return method.getName();
+    }
+
+    public String getFullName(){
+        return "%s %s".formatted(getModuleName(), getCommandName());
+    }
+
     public void setMethod(Method method) {
         this.method = method;
     }
 
     public SubcommandData toSubcommandData() {
-        SubcommandData subcommand = new SubcommandData(method.getName(), commandDescription);
+        SubcommandData subcommand = new SubcommandData(this.getCommandName(), commandDescription);
         subcommand.addOptions(options.stream().map(option -> option.toOptionData()).toList());
         return subcommand;
     }
@@ -90,12 +99,11 @@ public class CommandInfo {
         return result;
     }
 
-    public CommandAction getCommandAction() {
+    public CommandAction getCommandAction() throws CommandException {
         try {
             return CommandAction.class.cast(method.getDeclaringClass().getConstructor().newInstance());
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw CommandException.actionCreationException(this);
         }
     }
 

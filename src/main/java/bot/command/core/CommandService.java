@@ -1,10 +1,16 @@
 package bot.command.core;
 
+import java.lang.reflect.InvocationTargetException;
+
 import bot.command.annotations.CommandModule;
+import bot.command.exception.CommandActionException;
+import bot.command.exception.CommandException;
 import bot.command.model.CommandDictionnary;
 import bot.command.model.CommandInfo;
-import bot.service.BotService;
-import bot.service.BotServiceInfo;
+import bot.command.model.CommandOptionInfo;
+import bot.service.impl.SimpleBotService;
+import bot.view.ExceptionView;
+import bot.view.impl.CommandActionExceptionView;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -12,13 +18,12 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 
-@BotServiceInfo(listener = CommandListener.class)
-public class CommandService extends BotService {
+public class CommandService extends SimpleBotService {
 
     private CommandDictionnary commands;
 
     @Override
-    public void start(){
+    public void start() {
         this.commands = new CommandDictionnary();
         try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
             for (ClassInfo classInfo : result.getSubclasses(CommandAction.class)) {
@@ -28,7 +33,7 @@ public class CommandService extends BotService {
                     continue;
                 Class<CommandAction> clazz = classInfo.loadClass(CommandAction.class);
                 commands.put(clazz);
-                this.log.info("Listen {}.", clazz.getSimpleName());
+                getLogger().info("Listen {}.", clazz.getSimpleName());
             }
         }
     }
@@ -39,24 +44,38 @@ public class CommandService extends BotService {
 
     public void autocomplete(CommandAutoCompleteInteraction interaction) {
         CommandInfo info = commands.get(interaction.getName(), interaction.getSubcommandName());
-        info.getOptions().stream().filter(x -> x.getName().equals(interaction.getFocusedOption().getName()))
-                .forEach(option -> option.getAutocompleter().accept(this.getBot(), interaction));
+        CommandOptionInfo option = info.getOptions().stream()
+                .filter(x -> x.getName().equals(interaction.getFocusedOption().getName()))
+                .findFirst().orElse(null);
+        try {
+            option.getAutocompleter().accept(bot, interaction);
+        } catch (CommandException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     public void execute(SlashCommandInteractionEvent event) {
-        CommandInfo info = commands.get(event.getName(), event.getSubcommandName());
-        CommandAction action = info.getCommandAction();
-        Object[] parameters = info.getCommandParameters(event);
         try {
+            CommandInfo info = commands.get(event.getName(), event.getSubcommandName());
+            CommandAction action = info.getCommandAction();
+            Object[] parameters = info.getCommandParameters(event);
             action.hydrate(this.getBot(), event);
             action.check();
-            info.getMethod().invoke(action, parameters);
-        } catch (CommandException e) {
-            action.replyException(e).queue();
-            this.log.warn(e.getMessage());
+            try {
+                info.getMethod().invoke(action, parameters);
+                this.getLogger().info("{} executed successfully {} ", event.getUser().getName(), event.getCommandString());
+            } catch (InvocationTargetException ite) {
+                if (ite.getCause() instanceof Exception)
+                    throw (Exception) ite.getCause();
+            }
+        } catch (CommandActionException e) {
+            CommandActionExceptionView view = new CommandActionExceptionView(e);
+            event.replyEmbeds(view.render()).setEphemeral(true).submit();
+            getLogger().warn("{} failed to execute {} : ", event.getUser().getName(), event.getCommandString(), e.getMessage());
         } catch (Exception e) {
-            action.replyException(e).queue();
-            this.log.error(e.getMessage(), e);
+            ExceptionView view = new ExceptionView(e);
+            event.replyEmbeds(view.render()).setEphemeral(true).submit();
+            getLogger().error("{} failed to execute {} : ", event.getUser().getName(), event.getCommandString(), e.getMessage());
         }
     }
 

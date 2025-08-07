@@ -4,29 +4,33 @@ import java.lang.reflect.Parameter;
 
 import bot.command.annotations.CommandOption;
 import bot.command.core.CommandAutoCompleter;
+import bot.command.exception.CommandException;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class CommandOptionInfo {
-    public String name;
-    public String description;
-    public boolean required = true;
-    public CommandAutoCompleter autocompleter;
-    public CommandOptionTypes type;
-    
 
-    public CommandOptionInfo(String name, String description, boolean required,
+    private CommandInfo info;
+    private String name;
+    private String description;
+    private boolean required = true;
+    private Class<? extends CommandAutoCompleter> autocompleterClass;
+    private CommandOptionTypes type;
+
+    public CommandOptionInfo(CommandInfo info, String name, String description, boolean required,
             Class<? extends CommandAutoCompleter> autocompleterClass,
-            Class<?> type) {
+            CommandOptionTypes type) {
+        this.info = info;
         this.name = name;
         this.description = description;
         this.required = required;
-        this.setType(type);
-        this.setAutocompleter(autocompleterClass);
+        this.autocompleterClass = autocompleterClass;
+        this.type = type;
     }
 
-    public CommandOptionInfo(Parameter parameter, CommandOption option){
-        this(parameter.getName(), option.description(), option.required(), option.autocompleter(), parameter.getType());
+    public CommandOptionInfo(CommandInfo info, Parameter parameter, CommandOption option) {
+        this(info, parameter.getName(), option.description(), option.required(), option.autocompleter(),
+                CommandOptionTypes.byClass(parameter.getType()));
     }
 
     public String getName() {
@@ -53,21 +57,14 @@ public class CommandOptionInfo {
         this.required = required;
     }
 
-    public CommandAutoCompleter getAutocompleter() {
-        return autocompleter;
-    }
-
-    public void setAutocompleter(CommandAutoCompleter autocompleter) {
-        this.autocompleter = autocompleter;
-    }
-
-    public void setAutocompleter(Class<? extends CommandAutoCompleter> autocompleterClass) {
+    public CommandAutoCompleter getAutocompleter() throws CommandException {
         try {
-            this.autocompleter = autocompleterClass.getConstructor().newInstance();
+            CommandAutoCompleter autocompleter = autocompleterClass.getConstructor().newInstance();
+            return autocompleter;
         } catch (InstantiationException e) {
-            this.autocompleter = null;
+            return null;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw CommandException.autoCompleterCreationException(info, this.autocompleterClass.getSimpleName());
         }
     }
 
@@ -75,21 +72,32 @@ public class CommandOptionInfo {
         return type;
     }
 
-    public void setType(Class<?> typeClass) {
-        this.type = CommandOptionTypes.byClass(typeClass);
-    }
-
-    public void setType(CommandOptionTypes type){
+    public void setType(CommandOptionTypes type) {
         this.type = type;
     }
 
     public OptionData toOptionData() {
-        return new OptionData(type.getType(), name, description, required, autocompleter != null);
+        return new OptionData(type.getType(), name, description, required, !autocompleterClass.equals(CommandAutoCompleter.class));
     }
 
-    
     public Object getCommandParameter(SlashCommandInteractionEvent event) {
         return event.getOption(name, null, type.getMapper());
+    }
+
+    public Class<? extends CommandAutoCompleter> getAutocompleterClass() {
+        return autocompleterClass;
+    }
+
+    public void setAutocompleterClass(Class<? extends CommandAutoCompleter> autocompleterClass) {
+        this.autocompleterClass = autocompleterClass;
+    }
+
+    public CommandInfo getInfo() {
+        return info;
+    }
+
+    public void setInfo(CommandInfo info) {
+        this.info = info;
     }
 
 }

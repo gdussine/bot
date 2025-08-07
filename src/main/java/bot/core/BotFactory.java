@@ -2,7 +2,6 @@ package bot.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import bot.api.Bot;
 import bot.platform.PlatformService;
 import bot.service.BotListenerFactory;

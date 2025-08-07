@@ -1,49 +1,55 @@
 package bot.service;
 
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import bot.api.BotListener;
 import bot.core.BotImpl;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 
 /**
  * Manage BotListener instanciation
  */
+
 public class BotListenerFactory {
 
 	private BotImpl bot;
-	
+
 	private Map<Class<? extends BotListener>, BotListener> listeners = new HashMap<>();
 
 	public BotListenerFactory(BotImpl bot) {
 		this.bot = bot;
 	}
-	
+
 	public void createAll() {
-		bot.getServices().forEach(service ->{
-			this.create(service);
-		});
+		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
+			for (ClassInfo classInfo : result.getClassesImplementing(BotListener.class)) {
+				if (classInfo.isAbstract())
+					continue;
+				Class<? extends BotListener> clazz = classInfo.loadClass(BotListener.class);
+				this.create(clazz);
+			}
+		}
 	}
 
-	public BotListener create(BotService service) {
+	public <T extends BotListener> void create(Class<T> clazz) {
 		try {
-			Class<? extends BotListener> type  = service.getClass().getAnnotation(BotServiceInfo.class).listener();
-			if (Modifier.isAbstract(type.getModifiers()))
-				return null;
-			BotListener listener = type.getConstructor().newInstance();
-			listener.setService(service);
-			service.setListener(listener);
+			T listener = clazz.getConstructor().newInstance();
+			listener.setBot(bot);
 			bot.getJdaBuilder().addEventListeners(listener);
-			listeners.put(type, listener);
+			listeners.put(clazz, listener);
 		} catch (Exception e) {
-			service.getLog().error("Listener creation failed", e);
+			e.printStackTrace();
 		}
-		return null;
+		return;
 	}
-	
-	public Collection<BotListener> getAll(){
+
+	public Collection<BotListener> getAll() {
 		return listeners.values();
 	}
 
 }
+

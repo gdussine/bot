@@ -4,7 +4,7 @@ import bot.command.annotations.CommandDescription;
 import bot.command.annotations.CommandModule;
 import bot.command.annotations.CommandOption;
 import bot.command.core.CommandAction;
-import bot.command.core.CommandException;
+import bot.command.exception.CommandActionException;
 import bot.view.BotView;
 import bot.view.impl.SystemView;
 import net.dv8tion.jda.api.Permission;
@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.Permission;
 public class SystemAction extends CommandAction {
 
     @Override
-    public void check() throws CommandException {
+    public void check() throws CommandActionException {
         this.checkOwner();
     }
 

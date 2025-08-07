@@ -1,8 +1,8 @@
 package bot.context;
 
-import java.util.Set;
+import java.util.List;
 
 public interface GuildContextKeyProvider {
 
-    public Set<String> provide();
+    public List<GuildContextKey> provide();
 }

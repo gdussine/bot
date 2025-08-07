@@ -1,96 +1,108 @@
 package bot.context;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
-import bot.service.BotService;
-import bot.service.BotServiceInfo;
+import bot.api.GuildContext;
+import bot.persistence.EntityService;
+import bot.service.impl.SimpleBotService;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 import net.dv8tion.jda.api.entities.Guild;
 
+public class GuildContextService extends SimpleBotService {
 
-@BotServiceInfo
-public class GuildContextService extends BotService {
+	private Map<Long, GuildContext> contexts;
 
+	private List<GuildContextKeyProvider> providers;
+	private List<GuildContextKey> keys;
 
-	private Set<String> keys;
-	private	Map<Long, GuildContext> contexts;
+	private GuildContextValueDAO valueDAO;
+	private GuildContextKeyDAO keyDAO;
 
-	public GuildContextService(){
-		this.keys = new HashSet<>();
+	public GuildContextService() {
+		this.keys = new ArrayList<>();
+		this.providers = new ArrayList<>();
+		this.valueDAO = new GuildContextValueDAO();
+		this.keyDAO = new GuildContextKeyDAO();
 	}
 
-	public Map<Long, GuildContext> getContexts() {
-		return contexts;
+	public void registerDAO() {
+		bot.getRunningService(EntityService.class).registerDAO(valueDAO, keyDAO);
 	}
 
 	@Override
 	public void start() {
+		this.initKeyProviders();
+		this.registerDAO();
 		this.initKeys();
 		this.initContexts();
 	}
 
-	public void initKeys(){
+	public void initKeyProviders() {
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
-            for (ClassInfo classInfo : result.getClassesImplementing(GuildContextKeyProvider.class)) {
-                if (classInfo.isAbstract())
-                    continue;
-                Class<GuildContextKeyProvider> providerType = classInfo.loadClass(GuildContextKeyProvider.class);
-                try {
-					GuildContextKeyProvider provider = providerType.getConstructor().newInstance();
-					Set<String> providerKeys = provider.provide(); 
-					keys.addAll(providerKeys);
-					this.log.info("Collected {}.", providerKeys);
+			for (ClassInfo classInfo : result.getClassesImplementing(GuildContextKeyProvider.class)) {
+				if (classInfo.isAbstract())
+					continue;
+				Class<GuildContextKeyProvider> providerClass = classInfo.loadClass(GuildContextKeyProvider.class);
+				try {
+					this.providers.add(providerClass.getConstructor().newInstance());
 				} catch (Exception e) {
-					e.printStackTrace();
+					this.logger.error(e.getMessage());
 				}
-            }
+			}
 		}
+	}
 
+	public void initKeys() {
+		List<GuildContextKey> providersKeys = new ArrayList<>();
+		providers.forEach(provider -> providersKeys.addAll(provider.provide()));
+		this.keys = keyDAO.updateKeys(providersKeys);
+		getLogger().info("Keys {}", keys);
 	}
 
 	public void initContexts() {
 		this.contexts = new HashMap<>();
-		for (GuildContextEntry entry : getRepository(GuildContextEntry.class).all()) {
-			GuildContext context = contexts.getOrDefault(entry.getGuildId(), new GuildContext(bot, entry.getGuildId()));
-			context.putEntry(entry);
+		for (GuildContextValue entry : valueDAO.all()) {
+			GuildContext context = contexts.getOrDefault(entry.getGuildId(),
+					new GuildContextImpl(bot, entry.getGuildId()));
+			context.put(entry);
 			contexts.put(entry.getGuildId(), context);
 		}
-		this.log.info("Initialized {} guilds.", contexts.size());
+		getLogger().info("Initialized {} guilds.", contexts.size());
 	}
 
-	public void setContextEntry(Guild guild, String key, String value) {
-
-		GuildContextEntry newEntry = new GuildContextEntry(guild.getIdLong(), key, value);
-		GuildContextEntry oldEntry = this.getContext(newEntry.getGuildId()).getEntry(newEntry.getContextKey());
-		if (oldEntry != null) {
-			newEntry.setId(oldEntry.getId());
+	public void setContextEntry(Guild guild, String keyString, String valueString) throws GuildContextException {
+		GuildContextKey key = keyDAO.find(keyString).orElse(null);
+		if(key == null)
+			throw GuildContextException.unknownKey(keyString);
+		GuildContextValue detachedValue = new GuildContextValue(guild.getIdLong(), key, valueString);
+		GuildContextValue oldValue = getContext(guild.getIdLong()).getValue(keyString);
+		if (oldValue != null) {
+			detachedValue.setId(oldValue.getId());
 		}
-		newEntry = getRepository(GuildContextEntry.class).merge(newEntry);
-		this.getContext(newEntry.getGuildId()).putEntry(newEntry);
-		this.log.info("Set {} to \"{}\" for {}.",
-				newEntry.getContextKey(),
-				newEntry.getContextValue(),
-				bot.getJda().getGuildById(newEntry.getGuildId()).getName());
+		GuildContextValue attachedValue = valueDAO.merge(detachedValue);
+		this.getContext(guild.getIdLong()).put(attachedValue);
 	}
 
 	public void removeContextEntry(Guild guild, String key) {
 		GuildContext context = getContext(guild);
-		GuildContextEntry oldEntry = getRepository(GuildContextEntry.class).one(context.getEntry(key).getId());
-		context.remove(key);
-		getRepository(GuildContextEntry.class).delete(oldEntry);
+		Optional.ofNullable(context.getValue(key)).ifPresent(cacheValue -> {
+			context.remove(key);
+			valueDAO.delete(cacheValue.getId());
+		});
 	}
 
 	public GuildContext getContext(long guildId) {
-		this.awaitRunning().join();
-		GuildContext context = getContexts().get(guildId);
+		handler.awaitRunning().join();
+		GuildContext context = contexts.get(guildId);
 		if (context == null) {
-			context = new GuildContext(getBot(), guildId);
-			getContexts().put(guildId, context);
+			context = new GuildContextImpl(getBot(), guildId);
+			contexts.put(guildId, context);
 		}
 		return context;
 	}
@@ -99,7 +111,7 @@ public class GuildContextService extends BotService {
 		return getContext(guild.getIdLong());
 	}
 
-	public Set<String> getKeys() {
+	public List<GuildContextKey> getKeys() {
 		return keys;
 	}
 

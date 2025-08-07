@@ -2,15 +2,17 @@ package bot.api;
 
 import java.util.Collection;
 
-import bot.context.GuildContext;
 import bot.core.BotConfiguration;
-import bot.service.BotService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 
 public interface Bot {
 
     public <T extends BotService> T getService(Class<T> serviceClass);
+
+    
+	public <T extends BotService> T getRunningService(Class<T> type);
+
 
     public Collection<BotService> getServices();
 

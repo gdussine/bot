@@ -1,6 +1,9 @@
 package bot.view.impl;
 
-import bot.context.GuildContext;
+import java.util.List;
+
+import bot.api.GuildContext;
+import bot.context.GuildContextKey;
 import bot.view.BotView;
 
 public class ContextActionView extends BotView {
@@ -14,17 +17,16 @@ public class ContextActionView extends BotView {
         return this;
     }
 
-    protected ContextActionView setCondtextDescription(GuildContext context){
-        context.getContextMap().forEach((key, entry)->{
-            this.template.appendDescription("- __%s__: %s\n".formatted(key, entry.getContextValue()));
+    protected ContextActionView setCondtextDescription(List<GuildContextKey> keys, GuildContext context) {
+        keys.forEach(key -> {
+            this.template.appendDescription("```yaml\n%s: %s\n```\n".formatted(key,
+                    context.getString(key.getName()) == null ? "null" : "\"%s\"".formatted(context.getString(key.getName()))));
         });
         return this;
     }
 
-    public ContextActionView toContextAllView(GuildContext context){
-        return this.setContextTitle("Context").setCondtextDescription(context);
+    public ContextActionView toContextAllView(List<GuildContextKey> keys, GuildContext context) {
+        return this.setContextTitle("CONTEXT").setCondtextDescription(keys, context);
     }
-
-
 
 }

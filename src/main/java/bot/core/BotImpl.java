@@ -1,11 +1,14 @@
 package bot.core;
 
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import bot.api.Bot;
-import bot.context.GuildContext;
+import bot.api.GuildContext;
 import bot.context.GuildContextService;
-import bot.service.BotService;
+import bot.api.BotService;
 import bot.service.BotServiceFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -88,6 +91,17 @@ public class BotImpl extends BotLaunchable implements Bot {
     @Override
     public Collection<BotService> getServices() {
         return botServiceFactory.getAll();
+    }
+
+    @Override
+    public <T extends BotService> T getRunningService(Class<T> type){
+        T service = this.getService(type);
+        try {
+            service.getHandler().awaitRunning().get(20, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            service.getLogger().error("{} is not running", service.getName());
+        }
+        return service;
     }
 
 }

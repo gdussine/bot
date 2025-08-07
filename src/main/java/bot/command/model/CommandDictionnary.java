@@ -21,8 +21,8 @@ public class CommandDictionnary {
 
     private Map<String, CommandInfo> map = new HashMap<>();
 
-    public CommandDictionnary(){
-        
+    public CommandDictionnary() {
+
     }
 
     public CommandInfo get(String module, String name) {
@@ -55,13 +55,13 @@ public class CommandDictionnary {
                 continue;
             CommandDescription description = method.getAnnotation(CommandDescription.class);
             List<CommandOptionInfo> options = new ArrayList<>();
+            CommandInfo info = new CommandInfo(module, description, method, options);
             for (Parameter parameter : method.getParameters()) {
                 if (!parameter.isAnnotationPresent(CommandOption.class))
                     continue;
                 CommandOption commandOption = parameter.getAnnotation(CommandOption.class);
-                options.add(new CommandOptionInfo(parameter, commandOption));
+                options.add(new CommandOptionInfo(info, parameter, commandOption));
             }
-            CommandInfo info = new CommandInfo(module, description, method,options);
             map.put(info.getId(), info);
         }
     }

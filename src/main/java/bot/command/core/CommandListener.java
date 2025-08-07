@@ -1,30 +1,29 @@
 package bot.command.core;
 
-import bot.service.BotListener;
+import bot.service.impl.SimpleBotListener;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public class CommandListener extends BotListener{
+public class CommandListener extends SimpleBotListener{
 
-    @Override
-    public CommandService getService() {
-        return (CommandService) super.getService();
+    public CommandService getCommandService() {
+        return bot.getService(CommandService.class);
     }
 
     @Override
     public void onGuildReady(GuildReadyEvent event) {
-        getService().init(event.getGuild());
+        getCommandService().init(event.getGuild());
     }
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        getService().execute(event);
+        getCommandService().execute(event);
     }
 
     @Override
     public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
-        getService().autocomplete(event);
+        getCommandService().autocomplete(event);
     }
 
 }

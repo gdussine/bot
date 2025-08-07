@@ -5,8 +5,7 @@ import java.util.logging.Level;
 
 import bot.core.BotConfiguration;
 import bot.platform.PlatformService;
-import bot.service.BotService;
-import bot.service.BotServiceInfo;
+import bot.service.impl.SimpleBotService;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -17,17 +16,10 @@ import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceConfiguration;
 
-@BotServiceInfo
-public class EntityService extends BotService {
+public class EntityService extends SimpleBotService {
 
-	private EntityManagerFactory emf;
-	private EntityManager entityManager;
+	private EntityManagerFactory factory;
 	private PersistenceConfiguration configuration;
-
-	@Deprecated
-	public EntityManager getEntityManager() {
-		return this.awaitRunning().thenApply(v -> this.entityManager).join();
-	}
 
 	@Override
 	public void start() {
@@ -44,15 +36,21 @@ public class EntityService extends BotService {
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
 			for (ClassInfo classInfo : result.getClassesWithAnnotation(Entity.class)) {
 				configuration.managedClass(classInfo.loadClass());
-				this.log.info("Create Table {}.", classInfo.getSimpleName());
+				getLogger().info("Create Table {}.", classInfo.getSimpleName());
 			}
 		}
 		java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE);
-		this.emf = Persistence.createEntityManagerFactory(configuration);
+		this.factory = Persistence.createEntityManagerFactory(configuration);
+	}
+
+	public void registerDAO( EntityDAO<?>... daos){
+		for(EntityDAO<?> dao : daos){
+			dao.setService(this);
+		}
 	}
 
 	public <T> T withTransaction(Function<EntityManager, T> func) {
-		try (EntityManager em = emf.createEntityManager()) {
+		try (EntityManager em = factory.createEntityManager()) {
 			EntityTransaction tx = em.getTransaction();
 			try {
 				tx.begin();
@@ -60,7 +58,7 @@ public class EntityService extends BotService {
 				tx.commit();
 				return result;
 			} catch (Exception e) {
-				this.log.error("Transaction failed", e);
+				getLogger().error("Transaction failed", e);
 				if (tx.isActive())
 					tx.rollback();
 				throw e;
@@ -68,12 +66,18 @@ public class EntityService extends BotService {
 		}
 	}
 
-	public <T> EntityRepository<T> generateEntityRepository(Class<T> type) {
-		return new EntityRepository<>(this, type);
-		
+	public <T> T withoutTransaction(Function<EntityManager, T> func) {
+		try (EntityManager em = factory.createEntityManager()) {
+			try {
+				return func.apply(em);
+			} catch (Exception e) {
+				getLogger().error("Transaction failed", e);
+				throw e;
+			}
+		}
 	}
-
+	
 	public void stop() {
-		this.emf.close();
+		this.factory.close();
 	}
 }

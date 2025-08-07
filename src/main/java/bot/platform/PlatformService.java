@@ -9,12 +9,10 @@ import java.util.Scanner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bot.core.BotConfiguration;
-import bot.service.BotService;
-import bot.service.BotServiceInfo;
+import bot.service.impl.SimpleBotService;
 import okio.Path;
 
-@BotServiceInfo
-public class PlatformService extends BotService {
+public class PlatformService extends SimpleBotService {
 
     private ObjectMapper mapper;
 
@@ -56,7 +54,7 @@ public class PlatformService extends BotService {
                 mapper.writeValue(authFile, configuration);
                 return authFile;
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
                 return null;
             }
         }
@@ -79,7 +77,7 @@ public class PlatformService extends BotService {
         try (InputStream in = new FileInputStream(authFile)) {
             return new ObjectMapper().readValue(in, BotConfiguration.class);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         return null;
     }

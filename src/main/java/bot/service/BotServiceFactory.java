@@ -7,6 +7,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import bot.api.BotService;
 import bot.core.BotImpl;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
@@ -15,19 +19,18 @@ import io.github.classgraph.ScanResult;
 public class BotServiceFactory {
 
 	private Map<Class<? extends BotService>, BotService> services = new HashMap<>();
-
+	private Logger logger;
 	private BotImpl bot;
 
 	public BotServiceFactory(BotImpl bot) {
 		this.bot = bot;
+		this.logger = LoggerFactory.getLogger(getClass().getSimpleName());
 	}
 
 	public void createAll() {
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
-			for (ClassInfo classInfo : result.getSubclasses(BotService.class)) {
+			for (ClassInfo classInfo : result.getClassesImplementing(BotService.class)) {
 				if (classInfo.isAbstract())
-					continue;
-				if (!classInfo.hasAnnotation(BotServiceInfo.class))
 					continue;
 				Class<? extends BotService> clazz = classInfo.loadClass(BotService.class);
 				this.create(clazz);
@@ -37,11 +40,11 @@ public class BotServiceFactory {
 
 	public <T extends BotService> void create(Class<T> clazz) {
 		try {
-			BotService service = clazz.getConstructor().newInstance();
+			T service = clazz.getConstructor().newInstance();
 			service.setBot(bot);
-			services.put(service.getClass(), service);
+			services.put(clazz, service);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 	}
 
@@ -56,16 +59,16 @@ public class BotServiceFactory {
 	public void startAll() throws InterruptedException {
 		ExecutorService executor = Executors.newFixedThreadPool(services.size());
 		for (BotService service : getAll()) {
-			executor.submit(() -> service.run());
+			executor.submit(() -> service.getHandler().run());
 		}
 		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
+		executor.awaitTermination(20, TimeUnit.SECONDS);
 	}
 
 	public void stopAll() throws InterruptedException {
 		ExecutorService executor = Executors.newFixedThreadPool(services.size());
-		for(BotService service : getAll()){
-			executor.submit(()->service.shutdown());
+		for (BotService service : getAll()) {
+			executor.submit(() -> service.getHandler().shutdown());
 		}
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
