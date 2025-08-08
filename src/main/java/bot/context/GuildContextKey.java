@@ -7,7 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 
 @Entity
-public class GuildContextKey {
+public class GuildContextKey implements GuildContextKeyed{
 
     @Id
     private String name;
@@ -43,6 +43,11 @@ public class GuildContextKey {
     @Override
     public String toString() {
         return this.name;
+    }
+
+    @Override
+    public GuildContextKey getKey() {
+        return this;
     }
 
     @Override

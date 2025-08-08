@@ -19,8 +19,9 @@ public class ContextActionView extends BotView {
 
     protected ContextActionView setCondtextDescription(List<GuildContextKey> keys, GuildContext context) {
         keys.forEach(key -> {
-            this.template.appendDescription("```yaml\n%s: %s\n```\n".formatted(key,
-                    context.getString(key.getName()) == null ? "null" : "\"%s\"".formatted(context.getString(key.getName()))));
+            this.template.appendDescription(
+                    "```yaml\n%s: %s\n```\n".formatted(key.getName(), context.getString(key) == null ? "null"
+                            : "\"%s\"".formatted(context.getString(key))));
         });
         return this;
     }

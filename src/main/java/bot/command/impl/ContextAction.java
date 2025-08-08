@@ -24,10 +24,10 @@ public class ContextAction extends CommandAction {
 
         try {
             getService().setContextEntry(interaction.getGuild(), key, value);
+            this.view();
         } catch (GuildContextException e) {
-            throw new CommandActionException(e.getMessage(),this);
+            throw new CommandActionException(e.getMessage(), this);
         }
-        this.view();
 
     }
 
@@ -41,11 +41,13 @@ public class ContextAction extends CommandAction {
 
     @CommandDescription("Delete guild context entry")
     public void delete(
-            @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key) {
-        bot.getService(GuildContextService.class).removeContextEntry(interaction.getGuild(), key);
-        this.view();
+            @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key) throws CommandActionException {
+        try {
+            bot.getService(GuildContextService.class).removeContextEntry(interaction.getGuild(), key);
+            this.view();
+        } catch (GuildContextException e) {
+            throw new CommandActionException(e.getMessage(), this);
+        }
     }
-
-    
 
 }

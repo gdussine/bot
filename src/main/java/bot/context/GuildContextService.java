@@ -1,6 +1,7 @@
 package bot.context;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,6 @@ import net.dv8tion.jda.api.entities.Guild;
 public class GuildContextService extends SimpleBotService {
 
 	private Map<Long, GuildContext> contexts;
-
-	private List<GuildContextKeyProvider> providers;
 	private List<GuildContextKey> keys;
 
 	private GuildContextValueDAO valueDAO;
@@ -26,7 +25,6 @@ public class GuildContextService extends SimpleBotService {
 
 	public GuildContextService() {
 		this.keys = new ArrayList<>();
-		this.providers = new ArrayList<>();
 		this.valueDAO = new GuildContextValueDAO();
 		this.keyDAO = new GuildContextKeyDAO();
 	}
@@ -37,30 +35,21 @@ public class GuildContextService extends SimpleBotService {
 
 	@Override
 	public void start() {
-		this.initKeyProviders();
 		this.registerDAO();
 		this.initKeys();
 		this.initContexts();
 	}
 
-	public void initKeyProviders() {
-		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
-			for (ClassInfo classInfo : result.getClassesImplementing(GuildContextKeyProvider.class)) {
-				if (classInfo.isAbstract())
-					continue;
-				Class<GuildContextKeyProvider> providerClass = classInfo.loadClass(GuildContextKeyProvider.class);
-				try {
-					this.providers.add(providerClass.getConstructor().newInstance());
-				} catch (Exception e) {
-					this.logger.error(e.getMessage());
-				}
-			}
-		}
-	}
-
 	public void initKeys() {
 		List<GuildContextKey> providersKeys = new ArrayList<>();
-		providers.forEach(provider -> providersKeys.addAll(provider.provide()));
+		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
+			for (ClassInfo classInfo : result.getClassesImplementing(GuildContextKeyed.class).getEnums()) {
+				Class<? extends GuildContextKeyed> clazz = classInfo.loadClass(GuildContextKeyed.class);
+				if (!clazz.isEnum())
+					continue;
+				Arrays.stream(clazz.getEnumConstants()).forEach(keyed -> providersKeys.add(keyed.getKey()));
+			}
+		}
 		this.keys = keyDAO.updateKeys(providersKeys);
 		getLogger().info("Keys {}", keys);
 	}
@@ -78,10 +67,10 @@ public class GuildContextService extends SimpleBotService {
 
 	public void setContextEntry(Guild guild, String keyString, String valueString) throws GuildContextException {
 		GuildContextKey key = keyDAO.find(keyString).orElse(null);
-		if(key == null)
+		if (key == null)
 			throw GuildContextException.unknownKey(keyString);
 		GuildContextValue detachedValue = new GuildContextValue(guild.getIdLong(), key, valueString);
-		GuildContextValue oldValue = getContext(guild.getIdLong()).getValue(keyString);
+		GuildContextValue oldValue = getContext(guild.getIdLong()).getValue(key);
 		if (oldValue != null) {
 			detachedValue.setId(oldValue.getId());
 		}
@@ -89,7 +78,10 @@ public class GuildContextService extends SimpleBotService {
 		this.getContext(guild.getIdLong()).put(attachedValue);
 	}
 
-	public void removeContextEntry(Guild guild, String key) {
+	public void removeContextEntry(Guild guild, String keyString) throws GuildContextException {
+		GuildContextKey key = keyDAO.find(keyString).orElse(null);
+		if (key == null)
+			throw GuildContextException.unknownKey(keyString);
 		GuildContext context = getContext(guild);
 		Optional.ofNullable(context.getValue(key)).ifPresent(cacheValue -> {
 			context.remove(key);

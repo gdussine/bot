@@ -8,7 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
-public class GuildContextValue {
+public class GuildContextValue{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
