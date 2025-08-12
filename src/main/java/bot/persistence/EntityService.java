@@ -3,9 +3,9 @@ package bot.persistence;
 import java.util.function.Function;
 import java.util.logging.Level;
 
+import bot.api.simple.TemplateBotService;
 import bot.core.BotConfiguration;
 import bot.platform.PlatformService;
-import bot.service.impl.SimpleBotService;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -16,7 +16,7 @@ import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceConfiguration;
 
-public class EntityService extends SimpleBotService {
+public class EntityService extends TemplateBotService {
 
 	private EntityManagerFactory factory;
 	private PersistenceConfiguration configuration;
@@ -43,10 +43,9 @@ public class EntityService extends SimpleBotService {
 		this.factory = Persistence.createEntityManagerFactory(configuration);
 	}
 
-	public void registerDAO( EntityDAO<?>... daos){
-		for(EntityDAO<?> dao : daos){
+	public <T extends EntityDAO<?>> T registerDAO( T dao){
 			dao.setService(this);
-		}
+			return dao;
 	}
 
 	public <T> T withTransaction(Function<EntityManager, T> func) {
@@ -76,7 +75,7 @@ public class EntityService extends SimpleBotService {
 			}
 		}
 	}
-	
+
 	public void stop() {
 		this.factory.close();
 	}

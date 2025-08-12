@@ -7,7 +7,7 @@ import bot.context.GuildContextType;
 public enum DefaultGuildContextKeys implements GuildContextKeyed {
 
 
-    LICENSE_VALUE(new GuildContextKey(GuildContextType.STRING, "default.license.value"));
+    LICENSE_KEY(new GuildContextKey(GuildContextType.STRING, "default.license.key"));
 
     private GuildContextKey key;
 

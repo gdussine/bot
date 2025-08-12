@@ -1,11 +1,11 @@
 package bot.command.core;
 
-import bot.service.impl.SimpleBotListener;
+import bot.api.simple.TemplateBotListener;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public class CommandListener extends SimpleBotListener{
+public class CommandListener extends TemplateBotListener{
 
     public CommandService getCommandService() {
         return bot.getService(CommandService.class);

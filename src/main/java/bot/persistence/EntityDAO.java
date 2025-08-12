@@ -6,7 +6,7 @@ import java.util.function.Function;
 
 import jakarta.persistence.EntityManager;
 
-public class EntityDAO<T> {
+public abstract class EntityDAO<T> {
 
     protected EntityService service;
     protected Class<T> type;

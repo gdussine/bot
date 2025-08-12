@@ -8,11 +8,11 @@ import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import bot.api.simple.TemplateBotService;
 import bot.core.BotConfiguration;
-import bot.service.impl.SimpleBotService;
 import okio.Path;
 
-public class PlatformService extends SimpleBotService {
+public class PlatformService extends TemplateBotService {
 
     private ObjectMapper mapper;
 

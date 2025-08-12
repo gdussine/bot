@@ -8,14 +8,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import bot.api.GuildContext;
-import bot.persistence.EntityService;
-import bot.service.impl.SimpleBotService;
+import bot.api.simple.TemplateBotService;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class GuildContextService extends SimpleBotService {
+public class GuildContextService extends TemplateBotService {
 
 	private Map<Long, GuildContext> contexts;
 	private List<GuildContextKey> keys;
@@ -25,32 +24,27 @@ public class GuildContextService extends SimpleBotService {
 
 	public GuildContextService() {
 		this.keys = new ArrayList<>();
-		this.valueDAO = new GuildContextValueDAO();
-		this.keyDAO = new GuildContextKeyDAO();
-	}
-
-	public void registerDAO() {
-		bot.getRunningService(EntityService.class).registerDAO(valueDAO, keyDAO);
 	}
 
 	@Override
 	public void start() {
-		this.registerDAO();
+		this.valueDAO = bot.getEntityService().registerDAO(new GuildContextValueDAO());
+		this.keyDAO = bot.getEntityService().registerDAO(new GuildContextKeyDAO());
 		this.initKeys();
 		this.initContexts();
 	}
 
 	public void initKeys() {
-		List<GuildContextKey> providersKeys = new ArrayList<>();
+		List<GuildContextKey> referencedKeys = new ArrayList<>();
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
 			for (ClassInfo classInfo : result.getClassesImplementing(GuildContextKeyed.class).getEnums()) {
 				Class<? extends GuildContextKeyed> clazz = classInfo.loadClass(GuildContextKeyed.class);
 				if (!clazz.isEnum())
 					continue;
-				Arrays.stream(clazz.getEnumConstants()).forEach(keyed -> providersKeys.add(keyed.getKey()));
+				Arrays.stream(clazz.getEnumConstants()).forEach(keyed -> referencedKeys.add(keyed.getKey()));
 			}
 		}
-		this.keys = keyDAO.updateKeys(providersKeys);
+		this.keys = keyDAO.updateKeys(referencedKeys);
 		getLogger().info("Keys {}", keys);
 	}
 

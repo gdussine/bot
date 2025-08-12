@@ -1,5 +1,6 @@
 package bot.persistence;
 
+import java.util.function.Function;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -24,26 +25,46 @@ public class EntityQueryBuilder<T> {
         query.select(root);
     }
 
-    public EntityQueryBuilder<T> where(Predicate predicate){
+    public EntityQueryBuilder<T> where(Predicate predicate) {
         query.where(predicate);
         return this;
     }
 
-    public EntityQueryBuilder<T> where(String field, Object object){
+    public EntityQueryBuilder<T> where(Function<EntityQueryBuilder<T>, Predicate> predicateSupplier) {
+        return this.where(predicateSupplier.apply(this));
+    }
+
+    public EntityQueryBuilder<T> where(String field, Object object) {
         return this.where(builder.equal(root.get(field), object));
     }
 
-    public EntityQueryBuilder<T> orderBy(Order order){
+    public EntityQueryBuilder<T> orderBy(Order order) {
         query.orderBy(order);
         return this;
     }
 
-    public EntityQueryBuilder<T> orderBy(String field, boolean asc){
-            return this.orderBy(asc ? builder.asc(root.get(field)) : builder.desc(root.get(field)));
+    public EntityQueryBuilder<T> orderBy(Function<EntityQueryBuilder<T>, Order> orderSupplier){
+        return this.orderBy(orderSupplier.apply(this));
     }
 
-    public TypedQuery<T> build(){
+    public EntityQueryBuilder<T> orderBy(String field, boolean asc) {
+        return this.orderBy(asc ? builder.asc(root.get(field)) : builder.desc(root.get(field)));
+    }
+
+    public TypedQuery<T> build() {
         return em.createQuery(query);
+    }
+
+    public CriteriaBuilder getBuilder() {
+        return builder;
+    }
+
+    public CriteriaQuery<T> getQuery() {
+        return query;
+    }
+
+    public Root<T> getRoot() {
+        return root;
     }
 
 }

@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 import bot.api.Bot;
 import bot.api.GuildContext;
 import bot.context.GuildContextService;
+import bot.persistence.EntityService;
 import bot.api.BotService;
 import bot.service.BotServiceFactory;
 import net.dv8tion.jda.api.JDA;
@@ -99,9 +100,14 @@ public class BotImpl extends BotLaunchable implements Bot {
         try {
             service.getHandler().awaitRunning().get(20, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            service.getLogger().error("{} is not running", service.getName());
+            this.getLog().error("{} is not running", service.getName());
         }
         return service;
+    }
+
+    @Override
+    public EntityService getEntityService() {
+        return getRunningService(EntityService.class);
     }
 
 }

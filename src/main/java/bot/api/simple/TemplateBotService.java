@@ -1,4 +1,4 @@
-package bot.service.impl;
+package bot.api.simple;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,13 +7,13 @@ import bot.api.Bot;
 import bot.api.BotService;
 import bot.service.BotServiceHandler;
 
-public abstract class SimpleBotService implements BotService {
+public abstract class TemplateBotService implements BotService {
 
 	protected BotServiceHandler handler;
 	protected Logger logger;
 	protected Bot bot;
 
-	public SimpleBotService() {
+	public TemplateBotService() {
 		handler = new BotServiceHandler(this);
 		this.logger = LoggerFactory.getLogger(this.getName());
 	}
@@ -21,7 +21,6 @@ public abstract class SimpleBotService implements BotService {
 	public Bot getBot() {
 		return bot;
 	}
-
 
 	public void setBot(Bot bot) {
 		this.bot = bot;

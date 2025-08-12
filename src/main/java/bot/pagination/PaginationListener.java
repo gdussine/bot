@@ -1,9 +1,9 @@
 package bot.pagination;
 
-import bot.service.impl.SimpleBotListener;
+import bot.api.simple.TemplateBotListener;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
-public class PaginationListener extends SimpleBotListener{
+public class PaginationListener extends TemplateBotListener{
 
 
     

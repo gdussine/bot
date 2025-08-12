@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import bot.service.impl.SimpleBotService;
+import bot.api.simple.TemplateBotService;
 import bot.utils.DiscordEmoji;
 import bot.view.PaginationView;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -19,7 +19,7 @@ import net.dv8tion.jda.api.requests.restaction.interactions.MessageEditCallbackA
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
-public class PaginationService extends SimpleBotService {
+public class PaginationService extends TemplateBotService {
 
     private Map<Long, PaginationContainer<?>> cache;
     private final String buttonCategory = "pagination";

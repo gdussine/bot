@@ -1,10 +1,10 @@
-package bot.service.impl;
+package bot.api.simple;
 
 import bot.api.Bot;
 import bot.api.BotListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public abstract class SimpleBotListener extends ListenerAdapter implements BotListener  {
+public abstract class TemplateBotListener extends ListenerAdapter implements BotListener  {
 
     protected Bot bot;
 

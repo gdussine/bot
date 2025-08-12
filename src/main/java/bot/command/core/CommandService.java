@@ -2,13 +2,13 @@ package bot.command.core;
 
 import java.lang.reflect.InvocationTargetException;
 
+import bot.api.simple.TemplateBotService;
 import bot.command.annotations.CommandModule;
 import bot.command.exception.CommandActionException;
 import bot.command.exception.CommandException;
 import bot.command.model.CommandDictionnary;
 import bot.command.model.CommandInfo;
 import bot.command.model.CommandOptionInfo;
-import bot.service.impl.SimpleBotService;
 import bot.view.ExceptionView;
 import bot.view.impl.CommandActionExceptionView;
 import io.github.classgraph.ClassGraph;
@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 
-public class CommandService extends SimpleBotService {
+public class CommandService extends TemplateBotService {
 
     private CommandDictionnary commands;
 
