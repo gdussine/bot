@@ -2,7 +2,7 @@ package bot.command.core;
 
 import java.lang.reflect.InvocationTargetException;
 
-import bot.api.simple.TemplateBotService;
+import bot.api.framework.TemplateBotService;
 import bot.command.annotations.CommandModule;
 import bot.command.exception.CommandActionException;
 import bot.command.exception.CommandException;

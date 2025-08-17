@@ -3,7 +3,7 @@ package bot.persistence;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-import bot.api.simple.TemplateBotService;
+import bot.api.framework.TemplateBotService;
 import bot.core.BotConfiguration;
 import bot.platform.PlatformService;
 import io.github.classgraph.ClassGraph;
@@ -23,16 +23,16 @@ public class EntityService extends TemplateBotService {
 
 	@Override
 	public void start() {
-		PlatformService platformService = getBot().getService(PlatformService.class);
-		BotConfiguration botConfig = platformService.getBotConfiguration();
+		PlatformService platformService = getBot().getRunningService(PlatformService.class);
+		EntityServiceConfiguration config = platformService.getPlatformConfiguration("db.json",EntityServiceConfiguration.class);
 		this.configuration = new PersistenceConfiguration("bot.persistence")
 				.provider("org.hibernate.jpa.HibernatePersistenceProvider")
 				.property("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect")
 				.property(PersistenceConfiguration.SCHEMAGEN_DATABASE_ACTION, "update")
-				.property(PersistenceConfiguration.JDBC_USER, botConfig.getDatabaseUser())
-				.property(PersistenceConfiguration.JDBC_PASSWORD, botConfig.getDatabasePassword())
-				.property(PersistenceConfiguration.JDBC_DRIVER, botConfig.getDatabaseDriver())
-				.property(PersistenceConfiguration.JDBC_URL, botConfig.getDatabaseUrl());
+				.property(PersistenceConfiguration.JDBC_USER, config.getDatabaseUser())
+				.property(PersistenceConfiguration.JDBC_PASSWORD, config.getDatabasePassword())
+				.property(PersistenceConfiguration.JDBC_DRIVER, config.getDatabaseDriver())
+				.property(PersistenceConfiguration.JDBC_URL, config.getDatabaseUrl());
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
 			for (ClassInfo classInfo : result.getClassesWithAnnotation(Entity.class)) {
 				configuration.managedClass(classInfo.loadClass());
@@ -41,11 +41,12 @@ public class EntityService extends TemplateBotService {
 		}
 		java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE);
 		this.factory = Persistence.createEntityManagerFactory(configuration);
+		this.logger.info("Connected to %s as %s".formatted(config.getDatabaseUrl(), config.getDatabaseUser()));
 	}
 
-	public <T extends EntityDAO<?>> T registerDAO( T dao){
-			dao.setService(this);
-			return dao;
+	public <T extends EntityDAO<?>> T registerDAO(T dao) {
+		dao.setService(this);
+		return dao;
 	}
 
 	public <T> T withTransaction(Function<EntityManager, T> func) {

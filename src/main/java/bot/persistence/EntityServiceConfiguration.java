@@ -1,31 +1,13 @@
-package bot.core;
+package bot.persistence;
 
 import bot.platform.PlatformConfiguration;
 
-public class BotConfiguration implements PlatformConfiguration {
+public class EntityServiceConfiguration implements PlatformConfiguration {
 
-    private Long ownerId;
-    private String discordToken;
     private String databaseUser;
     private String databasePassword;
     private String databaseDriver;
     private String databaseUrl;
-
-    public String getDiscordToken() {
-        return discordToken;
-    }
-
-    public void setDiscordToken(String discordToken) {
-        this.discordToken = discordToken;
-    }
-
-    public Long getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
-    }
 
     public String getDatabaseUser() {
         return databaseUser;
@@ -61,8 +43,6 @@ public class BotConfiguration implements PlatformConfiguration {
 
     @Override
     public void setDefaultConfiguration() {
-        setDiscordToken("TOKEN");
-        setOwnerId(0L);
         setDatabaseUser("test");
         setDatabasePassword("test");
         setDatabaseDriver("org.mariadb.jdbc.Driver");

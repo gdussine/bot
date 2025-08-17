@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import bot.api.simple.TemplateBotService;
+import bot.api.framework.TemplateBotService;
 import bot.utils.DiscordEmoji;
 import bot.view.PaginationView;
 import net.dv8tion.jda.api.entities.MessageEmbed;

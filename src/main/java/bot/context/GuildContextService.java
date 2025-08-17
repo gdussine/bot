@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import bot.api.GuildContext;
-import bot.api.simple.TemplateBotService;
+import bot.api.framework.TemplateBotService;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;

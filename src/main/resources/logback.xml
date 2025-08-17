@@ -1,0 +1,16 @@
+<configuration>
+    <!-- Logger Hibernate : uniquement les erreurs -->
+    <logger name="org.hibernate" level="ERROR"/>
+
+    <!-- Logger global -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- Appender console -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%-5level %logger{0} - %msg%n</pattern>
+        </encoder>
+    </appender>
+</configuration>

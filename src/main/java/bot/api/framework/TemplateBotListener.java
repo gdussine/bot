@@ -1,4 +1,4 @@
-package bot.api.simple;
+package bot.api.framework;
 
 import bot.api.Bot;
 import bot.api.BotListener;
