@@ -1,4 +1,4 @@
-package bot.persistence;
+	package bot.persistence;
 
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -33,6 +33,7 @@ public class EntityService extends TemplateBotService {
 				.property(PersistenceConfiguration.JDBC_PASSWORD, config.getDatabasePassword())
 				.property(PersistenceConfiguration.JDBC_DRIVER, config.getDatabaseDriver())
 				.property(PersistenceConfiguration.JDBC_URL, config.getDatabaseUrl());
+
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
 			for (ClassInfo classInfo : result.getClassesWithAnnotation(Entity.class)) {
 				configuration.managedClass(classInfo.loadClass());

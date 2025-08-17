@@ -5,6 +5,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import bot.api.Bot;
 import bot.api.GuildContext;
 import bot.context.GuildContextService;
@@ -15,22 +18,41 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class BotImpl extends BotLaunchable implements Bot {
+public class BotImpl implements Bot {
 
     protected JDA jda;
+	protected Logger logger = LoggerFactory.getLogger(getClass());
     protected JDABuilder jdaBuilder;
     protected String name;
     private BotServiceFactory botServiceFactory;
     private BotConfiguration configuration;;
 
-    @Override
+    
+	public void run() {
+		try {
+			this.start();
+			logger.info("Started.");
+		} catch (Exception e) {
+			logger.error("Failed to run", e);
+			;
+		}
+	}
+
+	public void shutdown() {
+		try {
+			this.stop();
+			logger.info("Stopped.");
+		} catch (Exception e) {
+			logger.error("Failed to shutdown", e);
+		}
+	}
+	
     public void start() throws InterruptedException {
         botServiceFactory.startAll();
         jda = jdaBuilder.setToken(configuration.getDiscordToken()).build();
         jda.awaitReady();
     }
 
-    @Override
     public void stop() throws InterruptedException {
         botServiceFactory.stopAll();
         jda.shutdownNow();
@@ -100,7 +122,7 @@ public class BotImpl extends BotLaunchable implements Bot {
         try {
             service.getHandler().awaitRunning().get(20, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            this.getLog().error("{} is not running", service.getName());
+            this.logger.error("{} is not running", service.getName());
         }
         return service;
     }
