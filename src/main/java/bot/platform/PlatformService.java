@@ -17,6 +17,7 @@ public class PlatformService extends TemplateBotService {
     private ObjectMapper mapper;
 
     private static final String AUTH_FILENAME = "auth.json";
+    
 
     public PlatformService() {
         this.mapper = new ObjectMapper();

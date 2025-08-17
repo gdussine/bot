@@ -120,9 +120,9 @@ public class BotImpl implements Bot {
     public <T extends BotService> T getRunningService(Class<T> type){
         T service = this.getService(type);
         try {
-            service.getHandler().awaitRunning().get(20, TimeUnit.SECONDS);
+            service.getHandler().awaitRunning().get(5, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            this.logger.error("{} is not running", service.getName());
+            this.logger.error("{} is not running, status is {}", service.getName(), service.getHandler().getStatus());
         }
         return service;
     }

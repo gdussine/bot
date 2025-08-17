@@ -6,10 +6,6 @@ public class BotConfiguration implements PlatformConfiguration {
 
     private Long ownerId;
     private String discordToken;
-    private String databaseUser;
-    private String databasePassword;
-    private String databaseDriver;
-    private String databaseUrl;
 
     public String getDiscordToken() {
         return discordToken;
@@ -27,46 +23,11 @@ public class BotConfiguration implements PlatformConfiguration {
         this.ownerId = ownerId;
     }
 
-    public String getDatabaseUser() {
-        return databaseUser;
-    }
-
-    public void setDatabaseUser(String databaseUser) {
-        this.databaseUser = databaseUser;
-    }
-
-    public String getDatabasePassword() {
-        return databasePassword;
-    }
-
-    public void setDatabasePassword(String databasePassword) {
-        this.databasePassword = databasePassword;
-    }
-
-    public String getDatabaseDriver() {
-        return databaseDriver;
-    }
-
-    public void setDatabaseDriver(String databaseDriver) {
-        this.databaseDriver = databaseDriver;
-    }
-
-    public String getDatabaseUrl() {
-        return databaseUrl;
-    }
-
-    public void setDatabaseUrl(String databaseUrl) {
-        this.databaseUrl = databaseUrl;
-    }
 
     @Override
     public void setDefaultConfiguration() {
         setDiscordToken("TOKEN");
         setOwnerId(0L);
-        setDatabaseUser("test");
-        setDatabasePassword("test");
-        setDatabaseDriver("org.mariadb.jdbc.Driver");
-        setDatabaseUrl("jdbc:mariadb://localhost/test");
     }
 
 }

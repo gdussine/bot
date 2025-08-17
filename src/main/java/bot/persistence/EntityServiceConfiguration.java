@@ -4,49 +4,49 @@ import bot.platform.PlatformConfiguration;
 
 public class EntityServiceConfiguration implements PlatformConfiguration {
 
-    private String databaseUser;
-    private String databasePassword;
-    private String databaseDriver;
-    private String databaseUrl;
+	private String user;
+	private String password;
+	private String driver;
+	private String url;
 
-    public String getDatabaseUser() {
-        return databaseUser;
-    }
+	public String getUser() {
+		return user;
+	}
 
-    public void setDatabaseUser(String databaseUser) {
-        this.databaseUser = databaseUser;
-    }
+	public void setUser(String user) {
+		this.user = user;
+	}
 
-    public String getDatabasePassword() {
-        return databasePassword;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public void setDatabasePassword(String databasePassword) {
-        this.databasePassword = databasePassword;
-    }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-    public String getDatabaseDriver() {
-        return databaseDriver;
-    }
+	public String getDriver() {
+		return driver;
+	}
 
-    public void setDatabaseDriver(String databaseDriver) {
-        this.databaseDriver = databaseDriver;
-    }
+	public void setDriver(String driver) {
+		this.driver = driver;
+	}
 
-    public String getDatabaseUrl() {
-        return databaseUrl;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setDatabaseUrl(String databaseUrl) {
-        this.databaseUrl = databaseUrl;
-    }
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
-    @Override
-    public void setDefaultConfiguration() {
-        setDatabaseUser("test");
-        setDatabasePassword("test");
-        setDatabaseDriver("org.mariadb.jdbc.Driver");
-        setDatabaseUrl("jdbc:mariadb://localhost/test");
-    }
+	@Override
+	public void setDefaultConfiguration() {
+		setUser("test");
+		setPassword("test");
+		setDriver("org.mariadb.jdbc.Driver");
+		setUrl("jdbc:mariadb://localhost/test");
+	}
 
 }

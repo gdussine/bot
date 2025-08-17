@@ -17,6 +17,15 @@ public class BotServiceHandler {
         this.service = service;
         this.synchronizedStatus = new AtomicReference<>(BotLaunchableStatus.CREATED);
         this.waiters = new ConcurrentHashMap<>();
+        this.waiters.put(BotLaunchableStatus.RUNNING, createWaiter(BotLaunchableStatus.RUNNING));
+        this.waiters.put(BotLaunchableStatus.SHUTDOWN, createWaiter(BotLaunchableStatus.SHUTDOWN));
+    }
+        
+    private CompletableFuture<Void> createWaiter(BotLaunchableStatus status){
+    	return new CompletableFuture<Void>().whenComplete((v, err) -> {
+            if (err != null)
+                this.service.getLogger().error("Not %s".formatted(status.name()), err);
+    	});
     }
 
     private void setStatus(BotLaunchableStatus status) {
@@ -55,13 +64,8 @@ public class BotServiceHandler {
     private CompletableFuture<Void> awaitStatus(BotLaunchableStatus status) {
         if (synchronizedStatus.get() == status)
             return CompletableFuture.completedFuture(null);
-        return waiters.computeIfAbsent(status, s -> {
-            return new CompletableFuture<Void>().whenComplete((v, err) -> {
-                if (err != null)
-                    this.service.getLogger().error("Not %s".formatted(status.name()), err);
-            });
-        });
-    }
+        return waiters.get(status);
+    }  
 
     public CompletableFuture<Void> awaitRunning() {
         return this.awaitStatus(BotLaunchableStatus.RUNNING);
