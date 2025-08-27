@@ -7,7 +7,7 @@ import bot.command.core.CommandAction;
 import bot.command.exception.CommandActionException;
 import bot.context.GuildContextException;
 import bot.context.GuildContextService;
-import bot.view.impl.ContextActionView;
+import bot.view.impl.ContextView;
 import net.dv8tion.jda.api.Permission;
 
 @CommandModule(name = "context", permission = { Permission.ADMINISTRATOR })
@@ -33,15 +33,14 @@ public class ContextAction extends CommandAction {
 
     @CommandDescription("View guild context")
     public void view() {
-        interaction
-                .replyEmbeds(new ContextActionView()
-                        .toContextAllView(getService().getKeys(), bot.getContext(interaction.getGuild())).render())
-                .queue();
+        ContextView view = new ContextView(getService().getKeys(), bot.getContext(interaction.getGuild()));
+        interaction.replyEmbeds(view.render()).queue();
     }
 
     @CommandDescription("Delete guild context entry")
     public void delete(
-            @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key) throws CommandActionException {
+            @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key)
+            throws CommandActionException {
         try {
             bot.getService(GuildContextService.class).removeContextEntry(interaction.getGuild(), key);
             this.view();

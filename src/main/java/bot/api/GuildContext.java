@@ -21,10 +21,12 @@ public interface GuildContext {
 
     public String getString(GuildContextKeyed key);
 
+    public String getAsMention(GuildContextKeyed key);
+
     public void put(GuildContextValue value);
 
-    public void remove(String keyName);
-
     public void remove(GuildContextKeyed key);
+
+    public boolean isDefine(GuildContextKeyed key);
 
 }

@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.IMentionable;
 
 public class GuildContextImpl implements GuildContext {
 
@@ -27,22 +28,23 @@ public class GuildContextImpl implements GuildContext {
     }
 
     private <T> T get(Class<T> type, GuildContextKeyed key) {
-        GuildContextValue value = getValue(key);
-        if (value == null)
+        if (!isDefine(key))
             return null;
-        return type.cast(key.getKey().getContextType().getMapper().apply(getGuild(), value.getContextValue()));
+        return type.cast(key.getKey().getContextType().getMapper().apply(getGuild(), getValue(key).getContextValue()));
     }
 
+    @Override
+    public String getAsMention(GuildContextKeyed key) {
+        if (IMentionable.class.isAssignableFrom(key.getKey().getContextType().getType())) {
+            return get(IMentionable.class, key).getAsMention();
+        }
+        return getString(key);
+
+    }
 
     @Override
     public void put(GuildContextValue value) {
         context.put(value.getContextKey(), value);
-    }
-
-    @Override
-    public void remove(String keyName) {
-        GuildContextKey key = new GuildContextKey(null, keyName);
-        context.remove(key);
     }
 
     @Override
@@ -78,5 +80,10 @@ public class GuildContextImpl implements GuildContext {
     @Override
     public String getString(GuildContextKeyed keyed) {
         return get(String.class, keyed);
+    }
+
+    @Override
+    public boolean isDefine(GuildContextKeyed key) {
+        return context.get(key) != null;
     }
 }

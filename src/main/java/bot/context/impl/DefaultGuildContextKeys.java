@@ -7,12 +7,14 @@ import bot.context.GuildContextType;
 public enum DefaultGuildContextKeys implements GuildContextKeyed {
 
 
-    LICENSE_KEY(new GuildContextKey(GuildContextType.STRING, "default.license.key"));
+    LICENSE_KEY(GuildContextType.STRING, "default.license.key"),
+    LOGGER_CHANNEL(GuildContextType.TEXT_CHANNEL, "default.logger.channel")
+    ;
 
     private GuildContextKey key;
 
-    private DefaultGuildContextKeys(GuildContextKey key) {
-        this.key = key;
+    private DefaultGuildContextKeys(GuildContextType type, String name) {
+        this.key = new GuildContextKey(type, name);
     } 
 
     @Override
