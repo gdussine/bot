@@ -8,6 +8,7 @@ public class EntityServiceConfiguration implements PlatformConfiguration {
 	private String password;
 	private String driver;
 	private String url;
+	private String mode;
 
 	public String getUser() {
 		return user;
@@ -41,12 +42,21 @@ public class EntityServiceConfiguration implements PlatformConfiguration {
 		this.url = url;
 	}
 
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
+
 	@Override
 	public void setDefaultConfiguration() {
 		setUser("test");
 		setPassword("test");
 		setDriver("org.mariadb.jdbc.Driver");
 		setUrl("jdbc:mariadb://localhost/test");
+		setMode("update");
 	}
 
 }

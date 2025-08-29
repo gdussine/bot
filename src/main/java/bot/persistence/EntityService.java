@@ -27,7 +27,7 @@ public class EntityService extends TemplateBotService {
 		this.configuration = new PersistenceConfiguration("bot.persistence")
 				.provider("org.hibernate.jpa.HibernatePersistenceProvider")
 				.property("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect")
-				.property(PersistenceConfiguration.SCHEMAGEN_DATABASE_ACTION, "update")
+				.property(PersistenceConfiguration.SCHEMAGEN_DATABASE_ACTION, config.getMode())
 				.property(PersistenceConfiguration.JDBC_USER, config.getUser())
 				.property(PersistenceConfiguration.JDBC_PASSWORD, config.getPassword())
 				.property(PersistenceConfiguration.JDBC_DRIVER, config.getDriver())
