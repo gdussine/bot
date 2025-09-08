@@ -2,7 +2,7 @@ package bot.command.core;
 
 import java.lang.reflect.InvocationTargetException;
 
-import bot.api.framework.TemplateBotService;
+import bot.apiold.framework.TemplateBotService;
 import bot.command.annotations.CommandModule;
 import bot.command.exception.CommandActionException;
 import bot.command.exception.CommandException;
@@ -23,7 +23,7 @@ public class CommandService extends TemplateBotService {
     private CommandDictionnary commands;
 
     @Override
-    public void start() {
+    public void onStart() {
         this.commands = new CommandDictionnary();
         try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
             for (ClassInfo classInfo : result.getSubclasses(CommandAction.class)) {
@@ -36,6 +36,14 @@ public class CommandService extends TemplateBotService {
                 getLogger().info("Listen {}.", clazz.getSimpleName());
             }
         }
+    }
+
+    @Override
+    public void onStop() {
+        bot.getJda().getGuilds().forEach(guild -> {
+            guild.updateCommands().complete();
+        });
+        getLogger().info("Command list cleaned");
     }
 
     public void init(Guild guild) {
@@ -63,7 +71,8 @@ public class CommandService extends TemplateBotService {
             action.check();
             try {
                 info.getMethod().invoke(action, parameters);
-                this.getLogger().info("{} executed successfully {} ", event.getUser().getName(), event.getCommandString());
+                this.getLogger().info("{} executed successfully {} ", event.getUser().getName(),
+                        event.getCommandString());
             } catch (InvocationTargetException ite) {
                 if (ite.getCause() instanceof Exception)
                     throw (Exception) ite.getCause();
@@ -71,11 +80,13 @@ public class CommandService extends TemplateBotService {
         } catch (CommandActionException e) {
             CommandActionExceptionView view = new CommandActionExceptionView(e);
             event.replyEmbeds(view.render()).setEphemeral(true).submit();
-            getLogger().warn("{} failed to execute {} : ", event.getUser().getName(), event.getCommandString(), e.getMessage());
+            getLogger().warn("{} failed to execute {} : ", event.getUser().getName(), event.getCommandString(),
+                    e.getMessage());
         } catch (Exception e) {
             ExceptionView view = new ExceptionView(e);
             event.replyEmbeds(view.render()).setEphemeral(true).submit();
-            getLogger().error("{} failed to execute {} : ", event.getUser().getName(), event.getCommandString(), e.getMessage());
+            getLogger().error("{} failed to execute {} : ", event.getUser().getName(), event.getCommandString(),
+                    e.getMessage());
         }
     }
 

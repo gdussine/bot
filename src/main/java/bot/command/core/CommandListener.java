@@ -1,7 +1,7 @@
 
 package bot.command.core;
 
-import bot.api.framework.TemplateBotListener;
+import bot.apiold.framework.TemplateBotListener;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

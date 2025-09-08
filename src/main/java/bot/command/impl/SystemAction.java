@@ -27,12 +27,6 @@ public class SystemAction extends CommandAction {
         });
     }
 
-    @CommandDescription("Show service status")
-    public void services() {
-        BotView view = new SystemView().toServicesView(bot.getServices());
-        interaction.replyEmbeds(view.render()).submit();
-    }
-
     @CommandDescription("Shutdown the bot")
     public void shutdown() {
         interaction.replyEmbeds(new SystemView().toShutdownView().render()).queue(x -> {

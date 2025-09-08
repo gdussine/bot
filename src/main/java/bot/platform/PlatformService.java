@@ -8,15 +8,14 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import bot.api.framework.TemplateBotService;
-import bot.core.BotConfiguration;
+import bot.apiold.framework.TemplateBotService;
+import bot.core.DiscordConfiguration;
+import io.github.gdussine.bot.api.BotConfiguration;
 import okio.Path;
 
 public class PlatformService extends TemplateBotService {
 
 	private ObjectMapper mapper;
-
-	private static final String AUTH_FILENAME = "auth.json";
 
 	public PlatformService() {
 		this.mapper = new ObjectMapper();
@@ -45,11 +44,11 @@ public class PlatformService extends TemplateBotService {
 		return file;
 	}
 
-	public <T extends PlatformConfiguration> File createConfigFile(String configFileName, Class<T> configType) {
+	public <T extends BotConfiguration> File createConfigFile(String configFileName, Class<T> configType) {
 		try {
 			File configFile = getConfigFile(configFileName);
 			configFile.createNewFile();
-			mapper.writeValue(configFile,  getDefaultConfiguration(configType));
+			mapper.writeValue(configFile, getDefaultConfiguration(configType));
 			return configFile;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -57,10 +56,10 @@ public class PlatformService extends TemplateBotService {
 		}
 	}
 
-	public <T extends PlatformConfiguration> T getDefaultConfiguration(Class<T> configClass) {
+	public <T extends BotConfiguration> T getDefaultConfiguration(Class<T> configClass) {
 		try {
 			T config = configClass.getConstructor().newInstance();
-			config.setDefaultConfiguration();
+			config.initialize();
 			return config;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -68,7 +67,8 @@ public class PlatformService extends TemplateBotService {
 		}
 	}
 
-	public <T extends PlatformConfiguration> T getPlatformConfiguration(String fileName, Class<T> configType) {
+	public <T extends BotConfiguration> T getConfiguration(Class<T> configType) {
+		String fileName = getFileName(configType);
 		File configFile = getConfigFile(fileName);
 		if (!configFile.exists()) {
 			configFile = createConfigFile(fileName, configType);
@@ -79,12 +79,15 @@ public class PlatformService extends TemplateBotService {
 			logger.error(e.getMessage());
 			return null;
 		}
-
 	}
 
-	public BotConfiguration getBotConfiguration() {
+	public <T extends BotConfiguration> String getFileName(Class<T> configType) {
+		return configType.getSimpleName().replace("Configuration", "").toLowerCase() + ".json";
+	}
 
-		return getPlatformConfiguration(AUTH_FILENAME, BotConfiguration.class);
+	public DiscordConfiguration getDiscordConfiguration() {
+
+		return getConfiguration(DiscordConfiguration.class);
 	}
 
 }

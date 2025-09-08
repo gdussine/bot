@@ -8,12 +8,14 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bot.api.Bot;
-import bot.api.GuildContext;
 import bot.context.GuildContextService;
 import bot.persistence.EntityService;
-import bot.api.BotService;
+import bot.platform.PlatformService;
 import bot.service.BotServiceFactory;
+import io.github.gdussine.bot.api.Bot;
+import io.github.gdussine.bot.api.BotConfiguration;
+import io.github.gdussine.bot.api.BotService;
+import io.github.gdussine.bot.api.GuildContext;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -25,7 +27,7 @@ public class BotImpl implements Bot {
     protected JDABuilder jdaBuilder;
     protected String name;
     private BotServiceFactory botServiceFactory;
-    private BotConfiguration configuration;;
+    private DiscordConfiguration configuration;;
 
     
 	public void run() {
@@ -72,11 +74,12 @@ public class BotImpl implements Bot {
     }
 
     public GuildContext getContext(long guildId) {
-        return this.getService(GuildContextService.class).getContext(guildId);
+        return this.getStartedService(GuildContextService.class).getContext(guildId);
     }
 
     public GuildContext getContext(Guild guild) {
-        return this.getService(GuildContextService.class).getContext(guild);
+        return this.getStartedService(GuildContextService.class).getContext(guild);
+
     }
 
     public <T extends BotService> T getService(Class<T> serviceClass) {
@@ -99,7 +102,7 @@ public class BotImpl implements Bot {
         this.botServiceFactory = botServiceFactory;
     }
 
-    public void setConfiguration(BotConfiguration configuration) {
+    public void setConfiguration(DiscordConfiguration configuration) {
         this.configuration = configuration;
     }
 
@@ -117,19 +120,23 @@ public class BotImpl implements Bot {
     }
 
     @Override
-    public <T extends BotService> T getRunningService(Class<T> type){
+    public <T extends BotService> T getStartedService(Class<T> type){
         T service = this.getService(type);
         try {
-            service.getHandler().awaitRunning().get(5, TimeUnit.SECONDS);
+            service.awaitStart().get(5, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            this.logger.error("{} is not running, status is {}", service.getName(), service.getHandler().getStatus());
+            this.logger.error("{} is not running", service.getName());
         }
         return service;
     }
 
-    @Override
     public EntityService getEntityService() {
-        return getRunningService(EntityService.class);
+        return getStartedService(EntityService.class);
+    }
+
+    @Override
+    public <T extends BotConfiguration> T getConfiguration(Class<T> type) {
+        return getStartedService(PlatformService.class).getConfiguration(type);
     }
 
 }

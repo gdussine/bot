@@ -1,19 +1,25 @@
 package bot.pagination;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import bot.api.framework.TemplateBotService;
+import bot.apiold.framework.TemplateBotService;
 import bot.utils.DiscordEmoji;
 import bot.view.PaginationView;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.section.Section;
+import net.dv8tion.jda.api.components.section.SectionAccessoryComponent;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import net.dv8tion.jda.api.requests.restaction.interactions.MessageEditCallbackAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
@@ -46,10 +52,10 @@ public class PaginationService extends TemplateBotService {
     }
 
     public void onButtonClick(ButtonInteractionEvent event) {
-        if (!event.getButton().getId().startsWith(buttonCategory)) {
+        if (!event.getButton().getCustomId().startsWith(buttonCategory)) {
             return;
         }
-        if (event.getButton().getId().equals(nextButton.getId())) {
+        if (event.getButton().getCustomId().equals(nextButton.getId())) {
             this.update(event.getInteraction(), container -> container.nextPage());
         } else {
             this.update(event.getInteraction(), container -> container.previousPage());
@@ -77,12 +83,17 @@ public class PaginationService extends TemplateBotService {
             action.setComponents();
             return;
         }
-        List<Button> buttons = new ArrayList<>();
+        Collection<Button> buttons = new ArrayList<>();
         buttons.add(container.hasPreviousPage() ? previousButton : previousButton.asDisabled());
         buttons.add(container.hasNextPage() ? nextButton : nextButton.asDisabled());
-        action.setComponents(ActionRow.of(buttons));
+        ActionRow buttonRow = ActionRow.of(buttons);
+        Container c = Container.of(
+            List.of(
+                    Section.of(null, TextDisplay.of("**Titre :** Ceci est une description."))
+            )
+        );
+
+        action.useComponentsV2();
     }
-
-
 
 }

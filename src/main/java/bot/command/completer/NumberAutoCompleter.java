@@ -3,8 +3,8 @@ package bot.command.completer;
 import java.util.ArrayList;
 import java.util.List;
 
-import bot.api.Bot;
 import bot.command.core.CommandAutoCompleter;
+import io.github.gdussine.bot.api.Bot;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 

@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import bot.api.BotListener;
 import bot.core.BotImpl;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
+import io.github.gdussine.bot.api.BotListener;
 
 /**
  * Manage BotListener instanciation

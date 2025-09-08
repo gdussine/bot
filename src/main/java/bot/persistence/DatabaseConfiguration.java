@@ -1,8 +1,8 @@
 package bot.persistence;
 
-import bot.platform.PlatformConfiguration;
+import io.github.gdussine.bot.api.BotConfiguration;
 
-public class EntityServiceConfiguration implements PlatformConfiguration {
+public class DatabaseConfiguration implements BotConfiguration {
 
 	private String user;
 	private String password;
@@ -51,8 +51,20 @@ public class EntityServiceConfiguration implements PlatformConfiguration {
 	}
 
 	@Override
-	public void setDefaultConfiguration() {
-		setUser("test");
+	public String exportJSON() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'exportJSON'");
+	}
+
+	@Override
+	public void importJSON(String json) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'importJSON'");
+	}
+
+	@Override
+	public void initialize() {
+				setUser("test");
 		setPassword("test");
 		setDriver("org.mariadb.jdbc.Driver");
 		setUrl("jdbc:mariadb://localhost/test");

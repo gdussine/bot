@@ -2,7 +2,7 @@ package bot.command.core;
 
 import java.util.List;
 
-import bot.api.Bot;
+import io.github.gdussine.bot.api.Bot;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 

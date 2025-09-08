@@ -10,11 +10,11 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bot.api.BotService;
 import bot.core.BotImpl;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
+import io.github.gdussine.bot.api.BotService;
 
 public class BotServiceFactory {
 
@@ -59,7 +59,7 @@ public class BotServiceFactory {
 	public void startAll() throws InterruptedException {
 		ExecutorService executor = Executors.newFixedThreadPool(services.size());
 		for (BotService service : getAll()) {
-			executor.submit(() -> service.getHandler().run());
+			executor.submit(() -> service.start());
 		}
 		executor.shutdown();
 		executor.awaitTermination(20, TimeUnit.SECONDS);
@@ -68,9 +68,9 @@ public class BotServiceFactory {
 	public void stopAll() throws InterruptedException {
 		ExecutorService executor = Executors.newFixedThreadPool(services.size());
 		for (BotService service : getAll()) {
-			executor.submit(() -> service.getHandler().shutdown());
+			executor.submit(() -> service.stop());
 		}
 		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
+		executor.awaitTermination(20, TimeUnit.SECONDS);
 	}
 }

@@ -2,8 +2,8 @@ package bot.view.impl;
 
 import java.util.Collection;
 
-import bot.api.BotService;
 import bot.view.BotView;
+import io.github.gdussine.bot.api.BotService;
 
 public class SystemView extends BotView{
 
@@ -32,14 +32,6 @@ public class SystemView extends BotView{
     public SystemView toShutdownView(){
         this.template.setDescription(SHUTDOWN_LINE);
         return this.setSystemTitle(SHUTDOWN_TITLE);
-    }
-
-    public SystemView toServicesView(Collection<BotService> services) {
-        StringBuilder sb = new StringBuilder();
-        services.forEach(service -> sb.append(
-                SERVICE_LINE.formatted(service.getHandler().getStatus().getEmoji(), service.getClass().getSimpleName())));
-        template.setDescription(sb.toString());
-        return this.setSystemTitle(SERVICES_TITLE);
     }
 
 }

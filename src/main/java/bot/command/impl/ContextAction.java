@@ -3,9 +3,9 @@ package bot.command.impl;
 import bot.command.annotations.CommandDescription;
 import bot.command.annotations.CommandModule;
 import bot.command.annotations.CommandOption;
+import bot.command.completer.ContextAutoCompleter;
 import bot.command.core.CommandAction;
 import bot.command.exception.CommandActionException;
-import bot.context.GuildContextException;
 import bot.context.GuildContextService;
 import bot.view.impl.ContextView;
 import net.dv8tion.jda.api.Permission;
@@ -21,19 +21,14 @@ public class ContextAction extends CommandAction {
     public void insert(
             @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key,
             @CommandOption(description = "Context value") String value) throws CommandActionException {
-
-        try {
-            getService().setContextEntry(interaction.getGuild(), key, value);
-            this.view();
-        } catch (GuildContextException e) {
-            throw new CommandActionException(e.getMessage(), this);
-        }
+        getService().editContextEntry(interaction.getGuild().getIdLong(), key, value);
+        this.view();
 
     }
 
     @CommandDescription("View guild context")
     public void view() {
-        ContextView view = new ContextView(getService().getKeys(), bot.getContext(interaction.getGuild()));
+        ContextView view = new ContextView(getService().getDefinedKeys(), bot.getContext(interaction.getGuild()));
         interaction.replyEmbeds(view.render()).queue();
     }
 
@@ -41,12 +36,9 @@ public class ContextAction extends CommandAction {
     public void delete(
             @CommandOption(description = "Context key", autocompleter = ContextAutoCompleter.class) String key)
             throws CommandActionException {
-        try {
-            bot.getService(GuildContextService.class).removeContextEntry(interaction.getGuild(), key);
-            this.view();
-        } catch (GuildContextException e) {
-            throw new CommandActionException(e.getMessage(), this);
-        }
+
+        bot.getService(GuildContextService.class).removeContextEntry(interaction.getGuild().getIdLong(), key);
+        this.view();
     }
 
 }

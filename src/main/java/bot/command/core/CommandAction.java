@@ -1,9 +1,10 @@
 package bot.command.core;
 
-import bot.api.Bot;
-import bot.api.GuildContext;
 import bot.command.exception.CommandActionException;
 import bot.command.model.CommandInfo;
+import bot.core.DiscordConfiguration;
+import io.github.gdussine.bot.api.Bot;
+import io.github.gdussine.bot.api.GuildContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 
@@ -37,7 +38,7 @@ public abstract class CommandAction {
     }
 
     protected void checkOwner() throws CommandActionException {
-        if (bot.getConfiguration().getOwnerId().equals(interaction.getUser().getIdLong()))
+        if (bot.getConfiguration(DiscordConfiguration.class).getOwnerId().equals(interaction.getUser().getIdLong()))
             return;
         throw CommandActionException.notOwner(this);
     }

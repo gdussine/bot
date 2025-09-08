@@ -1,8 +1,8 @@
 package bot.core;
 
-import bot.platform.PlatformConfiguration;
+import io.github.gdussine.bot.api.BotConfiguration;
 
-public class BotConfiguration implements PlatformConfiguration {
+public class DiscordConfiguration implements BotConfiguration {
 
     private Long ownerId;
     private String discordToken;
@@ -23,9 +23,18 @@ public class BotConfiguration implements PlatformConfiguration {
         this.ownerId = ownerId;
     }
 
+    @Override
+    public String exportJSON() {
+        throw new UnsupportedOperationException("Unimplemented method 'exportJSON'");
+    }
 
     @Override
-    public void setDefaultConfiguration() {
+    public void importJSON(String arg0) {
+        throw new UnsupportedOperationException("Unimplemented method 'importJSON'");
+    }
+
+    @Override
+    public void initialize() {
         setDiscordToken("TOKEN");
         setOwnerId(0L);
     }

@@ -3,8 +3,7 @@
 import java.util.function.Function;
 import java.util.logging.Level;
 
-import bot.api.framework.TemplateBotService;
-import bot.platform.PlatformService;
+import bot.apiold.framework.TemplateBotService;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -18,30 +17,29 @@ import jakarta.persistence.PersistenceConfiguration;
 public class EntityService extends TemplateBotService {
 
 	private EntityManagerFactory factory;
-	private PersistenceConfiguration configuration;
+	private PersistenceConfiguration persistenceConfiguration;
 
 	@Override
-	public void start() {
-		PlatformService platformService = getBot().getRunningService(PlatformService.class);
-		EntityServiceConfiguration config = platformService.getPlatformConfiguration("db.json",EntityServiceConfiguration.class);
-		this.configuration = new PersistenceConfiguration("bot.persistence")
+	public void onStart() {
+		DatabaseConfiguration databaseConfiguration = getBot().getConfiguration(DatabaseConfiguration.class);
+		this.persistenceConfiguration = new PersistenceConfiguration("bot.persistence")
 				.provider("org.hibernate.jpa.HibernatePersistenceProvider")
 				.property("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect")
-				.property("hibernate.hbm2ddl.auto", config.getMode())
-				.property(PersistenceConfiguration.JDBC_USER, config.getUser())
-				.property(PersistenceConfiguration.JDBC_PASSWORD, config.getPassword())
-				.property(PersistenceConfiguration.JDBC_DRIVER, config.getDriver())
-				.property(PersistenceConfiguration.JDBC_URL, config.getUrl());
+				.property("hibernate.hbm2ddl.auto", databaseConfiguration.getMode())
+				.property(PersistenceConfiguration.JDBC_USER, databaseConfiguration.getUser())
+				.property(PersistenceConfiguration.JDBC_PASSWORD, databaseConfiguration.getPassword())
+				.property(PersistenceConfiguration.JDBC_DRIVER, databaseConfiguration.getDriver())
+				.property(PersistenceConfiguration.JDBC_URL, databaseConfiguration.getUrl());
 
 		try (ScanResult result = new ClassGraph().enableAnnotationInfo().scan()) {
 			for (ClassInfo classInfo : result.getClassesWithAnnotation(Entity.class)) {
-				configuration.managedClass(classInfo.loadClass());
+				persistenceConfiguration.managedClass(classInfo.loadClass());
 				getLogger().info("Create Table {}.", classInfo.getSimpleName());
 			}
 		}
 		java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE);
-		this.factory = Persistence.createEntityManagerFactory(configuration);
-		this.logger.info("Connected to %s as %s".formatted(config.getUrl(), config.getUser()));
+		this.factory = Persistence.createEntityManagerFactory(persistenceConfiguration);
+		this.logger.info("Connected to %s as %s".formatted(databaseConfiguration.getUrl(), databaseConfiguration.getUser()));
 	}
 
 	public <T extends EntityDAO<?>> T registerDAO(T dao) {
@@ -77,7 +75,7 @@ public class EntityService extends TemplateBotService {
 		}
 	}
 
-	public void stop() {
+	public void onStop() {
 		this.factory.close();
 	}
 }

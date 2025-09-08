@@ -1,11 +1,13 @@
-package bot.api.framework;
+package bot.apiold.framework;
+
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bot.api.Bot;
-import bot.api.BotService;
 import bot.service.BotServiceHandler;
+import io.github.gdussine.bot.api.Bot;
+import io.github.gdussine.bot.api.BotService;
 
 public abstract class TemplateBotService implements BotService {
 
@@ -26,21 +28,34 @@ public abstract class TemplateBotService implements BotService {
 		this.bot = bot;
 	}
 
-	public final void run() {
+	@Override
+	public final void start() {
 		handler.run();
 	}
 
-	public final void shutdown() {
+	@Override
+	public final void stop() {
 		handler.shutdown();
 	}
 
 	@Override
-	public void start() {
+	public void onStart() {
 
 	}
 
 	@Override
-	public void stop() {
+	public void onStop() {
+
+	}
+
+	@Override
+	public CompletableFuture<Void> awaitStart() {
+		return handler.awaitRunning();
+	}
+
+	@Override
+	public CompletableFuture<Void> awaitStop() {
+		return handler.awaitShuttingDown();
 	}
 
 	public BotServiceHandler getHandler() {

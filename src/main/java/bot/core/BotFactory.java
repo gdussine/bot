@@ -2,10 +2,11 @@ package bot.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import bot.api.Bot;
+
 import bot.platform.PlatformService;
 import bot.service.BotListenerFactory;
 import bot.service.BotServiceFactory;
+import io.github.gdussine.bot.api.Bot;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
@@ -16,7 +17,7 @@ public class BotFactory {
     private String name;
 
     protected BotServiceFactory botServiceFactory;
-    protected BotConfiguration botConfiguration;
+    protected DiscordConfiguration discordConfiguration;
     protected BotImpl bot;
     private BotListenerFactory botListenerFactory;
 
@@ -35,8 +36,8 @@ public class BotFactory {
         bot.setName(name);
         botServiceFactory.createAll();
         botListenerFactory.createAll();
-        botConfiguration =  botServiceFactory.get(PlatformService.class).getBotConfiguration();
-        bot.setConfiguration(botConfiguration);
+        discordConfiguration =  botServiceFactory.get(PlatformService.class).getDiscordConfiguration();
+        bot.setConfiguration(discordConfiguration);
         return bot;
     }
 }

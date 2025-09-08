@@ -4,8 +4,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import bot.api.BotService;
 import bot.core.BotLaunchableStatus;
+import io.github.gdussine.bot.api.BotService;
 
 public class BotServiceHandler {
 
@@ -20,12 +20,12 @@ public class BotServiceHandler {
         this.waiters.put(BotLaunchableStatus.RUNNING, createWaiter(BotLaunchableStatus.RUNNING));
         this.waiters.put(BotLaunchableStatus.SHUTDOWN, createWaiter(BotLaunchableStatus.SHUTDOWN));
     }
-        
-    private CompletableFuture<Void> createWaiter(BotLaunchableStatus status){
-    	return new CompletableFuture<Void>().whenComplete((v, err) -> {
+
+    private CompletableFuture<Void> createWaiter(BotLaunchableStatus status) {
+        return new CompletableFuture<Void>().whenComplete((v, err) -> {
             if (err != null)
                 this.service.getLogger().error("Not %s".formatted(status.name()), err);
-    	});
+        });
     }
 
     private void setStatus(BotLaunchableStatus status) {
@@ -42,7 +42,7 @@ public class BotServiceHandler {
 
     public void run() {
         try {
-            this.service.start();
+            this.service.onStart();
             this.setStatus(BotLaunchableStatus.RUNNING);
             this.service.getLogger().info("Started.");
         } catch (Exception e) {
@@ -53,7 +53,7 @@ public class BotServiceHandler {
 
     public void shutdown() {
         try {
-            this.service.stop();
+            this.service.onStop();
             this.setStatus(BotLaunchableStatus.SHUTDOWN);
             this.service.getLogger().info("Stopped.");
         } catch (Exception e) {
@@ -65,7 +65,7 @@ public class BotServiceHandler {
         if (synchronizedStatus.get() == status)
             return CompletableFuture.completedFuture(null);
         return waiters.get(status);
-    }  
+    }
 
     public CompletableFuture<Void> awaitRunning() {
         return this.awaitStatus(BotLaunchableStatus.RUNNING);

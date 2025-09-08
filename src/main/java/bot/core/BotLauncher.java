@@ -1,12 +1,12 @@
 package bot.core;
 
-import bot.api.Bot;
+import io.github.gdussine.bot.api.Bot;
 
 public class BotLauncher {
 
     private Bot bot;
 
-    public BotLauncher(String name){
+    public BotLauncher(String name) {
         BotFactory factory = new BotFactory(name);
         this.bot = factory.createBot();
     }
@@ -15,14 +15,14 @@ public class BotLauncher {
         return bot;
     }
 
-
     public void start() {
         bot.run();
     }
 
     public static void main(String[] args) {
-        BotLauncher launcher = new BotLauncher("bot");
-        launcher.start();
+    BotLauncher launcher = new BotLauncher("bot");
+    launcher.start();
 
     }
+
 }

@@ -3,20 +3,20 @@ package bot.context;
 import java.util.HashMap;
 import java.util.Map;
 
-import bot.api.Bot;
-import bot.api.GuildContext;
+import io.github.gdussine.bot.api.Bot;
+import io.github.gdussine.bot.api.GuildContext;
+import io.github.gdussine.bot.api.GuildContextKeyed;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.entities.IMentionable;
 
 public class GuildContextImpl implements GuildContext {
 
     protected Bot bot;
     protected Long guildId;
-    protected Map<GuildContextKey, GuildContextValue> context = new HashMap<>();
+    protected Map<String, String> context = new HashMap<>();
 
     public GuildContextImpl(Bot bot, Long guildId) {
         this.bot = bot;
@@ -27,63 +27,49 @@ public class GuildContextImpl implements GuildContext {
         return bot.getJda().getGuildById(guildId);
     }
 
-    private <T> T get(Class<T> type, GuildContextKeyed key) {
+    private <T> T get(GuildContextType<T> mapper, GuildContextKeyed key) {
         if (!isDefine(key))
             return null;
-        return type.cast(key.getKey().getContextType().getMapper().apply(getGuild(), getValue(key).getContextValue()));
+        return mapper.getFunction().apply(getGuild(), context.get(key.getContextKey()));
     }
 
     @Override
-    public String getAsMention(GuildContextKeyed key) {
-        if (IMentionable.class.isAssignableFrom(key.getKey().getContextType().getType())) {
-            return get(IMentionable.class, key).getAsMention();
-        }
-        return getString(key);
-
+    public void put(GuildContextKeyed key, String value) {
+        context.put(key.getContextKey(), value);
     }
 
     @Override
-    public void put(GuildContextValue value) {
-        context.put(value.getContextKey(), value);
+    public void remove(GuildContextKeyed key) {
+        context.remove(key.getContextKey());
     }
 
     @Override
-    public void remove(GuildContextKeyed keyed) {
-        context.remove(keyed.getKey());
+    public VoiceChannel getVoiceChannel(GuildContextKeyed key) {
+        return get(GuildContextType.VOICE_CHANNEL, key);
     }
 
     @Override
-    public VoiceChannel getVoiceChannel(GuildContextKeyed keyed) {
-        return get(VoiceChannel.class, keyed);
+    public TextChannel getTextChannel(GuildContextKeyed key) {
+        return get(GuildContextType.TEXT_CHANNEL, key);
     }
 
     @Override
-    public TextChannel getTextChannel(GuildContextKeyed keyed) {
-        return get(TextChannel.class, keyed);
+    public Role getRole(GuildContextKeyed key) {
+        return get(GuildContextType.ROLE, key);
     }
 
     @Override
-    public GuildContextValue getValue(GuildContextKeyed keyed) {
-        return context.get(keyed.getKey());
+    public Emoji getEmoji(GuildContextKeyed key) {
+        return get(GuildContextType.EMOJI, key);
     }
 
     @Override
-    public Role getRole(GuildContextKeyed keyed) {
-        return get(Role.class, keyed);
-    }
-
-    @Override
-    public Emoji getEmoji(GuildContextKeyed keyed) {
-        return get(Emoji.class, keyed);
-    }
-
-    @Override
-    public String getString(GuildContextKeyed keyed) {
-        return get(String.class, keyed);
+    public String getString(GuildContextKeyed key) {
+        return get(GuildContextType.STRING, key);
     }
 
     @Override
     public boolean isDefine(GuildContextKeyed key) {
-        return context.get(key) != null;
+        return context.get(key.getContextKey()) != null;
     }
 }

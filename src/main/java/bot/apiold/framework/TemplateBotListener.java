@@ -1,7 +1,7 @@
-package bot.api.framework;
+package bot.apiold.framework;
 
-import bot.api.Bot;
-import bot.api.BotListener;
+import io.github.gdussine.bot.api.Bot;
+import io.github.gdussine.bot.api.BotListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public abstract class TemplateBotListener extends ListenerAdapter implements BotListener  {
